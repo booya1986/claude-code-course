@@ -600,6 +600,7 @@
   $('c-play').addEventListener('click', toggle);
   $('bigplay').addEventListener('click', toggle);
   video.addEventListener('click', toggle);
+  video.addEventListener('dblclick', function () { if (fsEl()) exitFs(); else enterFs(); });
   $('c-back').addEventListener('click', function () { seekTo(video.currentTime - 10); });
   $('c-fwd').addEventListener('click', function () { seekTo(video.currentTime + 10); });
   $('c-mark').addEventListener('click', addBookmark);
@@ -632,10 +633,35 @@
     if (document.pictureInPictureElement) document.exitPictureInPicture();
     else if (video.requestPictureInPicture) video.requestPictureInPicture().catch(function () {});
   });
+  function fsEl() { return document.fullscreenElement || document.webkitFullscreenElement || null; }
+  function exitFs() {
+    var fn = document.exitFullscreen || document.webkitExitFullscreen;
+    if (fn) fn.call(document);
+  }
+  function enterFs() {
+    var fn = stage.requestFullscreen || stage.webkitRequestFullscreen;
+    if (fn) {
+      var r = fn.call(stage);
+      if (r && r.catch) r.catch(function () {});
+      return;
+    }
+    // iOS Safari never gives the container fullscreen; only the video element can go native
+    if (video.webkitEnterFullscreen) video.webkitEnterFullscreen();
+  }
   $('c-fs').addEventListener('click', function () {
-    if (document.fullscreenElement) document.exitFullscreen();
-    else stage.requestFullscreen && stage.requestFullscreen().catch(function () {});
+    if (fsEl()) exitFs(); else enterFs();
   });
+  function syncFsIcon() {
+    var on = !!fsEl();
+    $('c-fs').innerHTML = on
+      ? '<svg viewBox="0 0 24 24"><path d="M3 8h3a2 2 0 0 0 2-2V3M21 8h-3a2 2 0 0 1-2-2V3M3 16h3a2 2 0 0 1 2 2v3M21 16h-3a2 2 0 0 0-2 2v3"/></svg>'
+      : '<svg viewBox="0 0 24 24"><path d="M8 3H5a2 2 0 0 0-2 2v3M16 3h3a2 2 0 0 1 2 2v3M8 21H5a2 2 0 0 1-2-2v-3M16 21h3a2 2 0 0 0 2-2v-3"/></svg>';
+    $('c-fs').setAttribute('aria-label', on ? 'יציאה ממסך מלא' : 'מסך מלא');
+    $('c-fs').setAttribute('title', on ? 'יציאה ממסך מלא (F)' : 'מסך מלא (F)');
+    if (!on) stage.classList.remove('hidectl');
+  }
+  document.addEventListener('fullscreenchange', syncFsIcon);
+  document.addEventListener('webkitfullscreenchange', syncFsIcon);
 
   /* scrub */
   function scrubAt(e) {
