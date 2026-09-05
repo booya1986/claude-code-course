@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>קורס: 9 עקרונות העבודה עם Claude Code</title>
+<meta name="description" content="קורס וידאו בעברית: תשעת עקרונות העבודה הנכונה עם Claude Code. כל עיקרון בפרק משלו, עם וידאו, פרקי משנה, תמלול, סימניות, הערות וחומר קריאה.">
+<link rel="canonical" href="https://booya1986.github.io/claude-code-course/">
+<link rel="icon" href="imgs/logo.png">
+
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="אבי לוי">
+<meta property="og:locale" content="he_IL">
+<meta property="og:url" content="https://booya1986.github.io/claude-code-course/">
+<meta property="og:title" content="9 עקרונות העבודה עם Claude Code — קורס וידאו בעברית">
+<meta property="og:description" content="מסביבת העבודה ועד רוטינות בענן. כל עיקרון בפרק משלו, עם וידאו, תמלול, סימניות, הערות וחומר קריאה. גם למי שמעולם לא כתב שורת קוד.">
+<meta property="og:image" content="https://booya1986.github.io/claude-code-course/imgs/og.png">
+<meta property="og:image:secure_url" content="https://booya1986.github.io/claude-code-course/imgs/og.png">
+<meta property="og:image:type" content="image/png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="9 עקרונות העבודה עם Claude Code — קורס וידאו בעברית מאת אבי לוי">
+
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="9 עקרונות העבודה עם Claude Code — קורס וידאו בעברית">
+<meta name="twitter:description" content="מסביבת העבודה ועד רוטינות בענן. כל עיקרון בפרק משלו, עם וידאו, תמלול, סימניות, הערות וחומר קריאה.">
+<meta name="twitter:image" content="https://booya1986.github.io/claude-code-course/imgs/og.png">
+<meta name="theme-color" content="#1b1b1b">
+<link rel="stylesheet" href="assets/course.css?v=1788627514">
+</head>
+<body>
+<div class="grid-bg" aria-hidden="true">
+  <div class="grid-bg__glow"></div>
+  <div class="grid-bg__grid"></div>
+</div>
+
+<header class="topbar">
+  <button class="brand" id="btn-home" title="למסך הפתיחה">
+    <img src="imgs/logo.png" alt="">
+    <div>
+      <b class="long">9 עקרונות העבודה עם Claude Code</b>
+      <b class="short">9 עקרונות · Claude Code</b>
+      <span>קורס וידאו · אבי לוי</span>
+    </div>
+  </button>
+  <div class="spacer"></div>
+  <div class="overall" title="התקדמות בקורס">
+    <svg class="ring" viewBox="0 0 36 36" aria-hidden="true">
+      <circle class="bg" cx="18" cy="18" r="15.5"></circle>
+      <circle class="fg" id="ring-fg" cx="18" cy="18" r="15.5" stroke-dasharray="0 100"></circle>
+    </svg>
+    <span id="overall-txt">0% הושלמו</span>
+  </div>
+  <div id="topbar-bar"></div>
+  <button class="icon-btn" id="btn-help" title="קיצורי מקלדת (?)" aria-label="קיצורי מקלדת">
+    <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.5 9a2.5 2.5 0 1 1 3.4 2.3c-.6.3-.9.8-.9 1.4v.6"/><path d="M12 17h.01"/></svg>
+  </button>
+</header>
+
+<div class="shell">
+  <nav class="rail" aria-label="פרקי הקורס">
+    <h2>פרקי הקורס</h2>
+    <button class="rail-toggle" id="rail-toggle" aria-expanded="false" aria-controls="chaplist">
+      <span id="rail-toggle-label">כל הפרקים</span>
+      <svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+    </button>
+    <div id="chaplist"></div>
+  </nav>
+
+  <div class="main">
+    <section class="welcome" id="welcome" hidden>
+      <div class="w-hero">
+        <div class="introwrap" id="introwrap">
+          <video id="intro-video" playsinline muted autoplay preload="auto"></video>
+          <button class="introsound" id="intro-sound">
+            <svg viewBox="0 0 24 24"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/><path d="M18.5 5.5a9 9 0 0 1 0 13"/></svg>
+            <span>הפעלת קול</span>
+          </button>
+          <button class="introreplay" id="intro-replay" hidden>
+            <svg viewBox="0 0 24 24"><polyline points="1 4 1 10 7 10"/><path d="M3.5 15a9 9 0 1 0 2.1-9.4L1 10"/></svg>
+            <span>לצפייה שוב</span>
+          </button>
+        </div>
+        <span class="w-lbl">קורס וידאו · אבי לוי</span>
+        <h1>9 עקרונות העבודה עם <mark>Claude Code</mark></h1>
+        <p class="w-lead">הקורס עובר על תשעת העקרונות של עבודה נכונה עם <strong>Claude Code</strong>, סוכן הקוד של Anthropic, בעברית פשוטה וברורה. כל עיקרון מקבל פרק משלו — וידאו, פרקי משנה, תמלול, סימניות, הערות וחומר קריאה — וגם מי שמעולם לא כתב שורת קוד יכול לעבור אותו מההתחלה עד הסוף.</p>
+        <div class="w-stats" id="w-stats"></div>
+        <div class="w-cta">
+          <button class="btn pri" id="w-start">התחלה מפרק 1</button>
+          <button class="btn" id="w-resume" hidden></button>
+        </div>
+      </div>
+
+      <h2 class="w-h2">מה נלמד</h2>
+      <div class="w-grid" id="w-grid"></div>
+
+      <h2 class="w-h2">איך עובדים בסביבה הזאת</h2>
+      <div class="w-how">
+        <div class="w-card">
+          <span class="w-ic"><svg viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/><circle cx="8" cy="6" r="2"/><circle cx="15" cy="12" r="2"/><circle cx="11" cy="18" r="2"/></svg></span>
+          <h3>פרקי משנה</h3>
+          <p>כל סרטון מחולק לנושאים. לחיצה על נושא קופצת ישר לרגע שבו הוא מתחיל, והסימונים על סרגל הזמן מראים איפה הם יושבים.</p>
+        </div>
+        <div class="w-card">
+          <span class="w-ic"><svg viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg></span>
+          <h3>סימניות</h3>
+          <p>בכל רגע בסרטון אפשר ללחוץ <kbd>B</kbd> ולסמן אותו. הסימנייה נשמרת עם הערה שלכם ומופיעה כסיכה על סרגל הזמן.</p>
+        </div>
+        <div class="w-card">
+          <span class="w-ic"><svg viewBox="0 0 24 24"><path d="M4 4h12l4 4v12H4z"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="8" y1="16" x2="14" y2="16"/></svg></span>
+          <h3>הערות</h3>
+          <p>לכל פרק יש פנקס הערות שנשמר אוטומטית, עם כפתור שמכניס את חותמת הזמן הנוכחית לתוך הטקסט.</p>
+        </div>
+        <div class="w-card">
+          <span class="w-ic"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><line x1="7" y1="9" x2="17" y2="9"/><line x1="7" y1="13" x2="15" y2="13"/><line x1="7" y1="17" x2="12" y2="17"/></svg></span>
+          <h3>תמלול וחומר קריאה</h3>
+          <p>תמלול מלא שרץ עם הסרטון וניתן לחיפוש, ולצידו הסבר כתוב ומפורט של אותו עיקרון — לקריאה בלי וידאו.</p>
+        </div>
+      </div>
+
+      <p class="w-note">ההתקדמות, הסימניות וההערות נשמרות בדפדפן הזה בלבד. אפשר לחזור למסך הזה בכל רגע בלחיצה על הלוגו למעלה, ולראות את רשימת קיצורי המקלדת בלחיצה על <kbd>?</kbd>.</p>
+
+      <footer class="w-foot">
+        <img src="imgs/logo.png" alt="">
+        <div><b>אבי לוי</b><br>
+        <a href="https://www.avilevi.co.il" target="_blank" rel="noopener">הבלוג</a> ·
+        <a href="https://www.youtube.com/channel/UCdz7iR7sYg2gevHXEyeeM1Q" target="_blank" rel="noopener">ערוץ היוטיוב</a></div>
+      </footer>
+    </section>
+
+    <div class="player" id="player">
+    <div class="stage" id="stage">
+      <video id="video" playsinline preload="metadata"></video>
+      <div class="captions" id="captions" aria-live="off"></div>
+      <button class="bigplay" id="bigplay" aria-label="נגן">
+        <svg viewBox="0 0 24 24"><polygon points="6 3 21 12 6 21 6 3"/></svg>
+      </button>
+      <div class="toast" id="toast"></div>
+      <div class="ctrls" id="ctrls">
+        <div class="scrub" id="scrub" role="slider" tabindex="0" aria-label="מיקום בסרטון" aria-valuemin="0" aria-valuenow="0" aria-valuemax="100">
+          <div class="track" id="track">
+            <div class="buf" id="buf"></div>
+            <div class="fill" id="fill"></div>
+            <div class="head" id="head"></div>
+          </div>
+          <div class="tip" id="tip" hidden></div>
+        </div>
+        <div class="row">
+          <button class="cbtn" id="c-play" aria-label="נגן / השהה"><svg class="solid" viewBox="0 0 24 24"><polygon points="6 3 21 12 6 21 6 3"/></svg></button>
+          <button class="cbtn" id="c-back" aria-label="אחורה 10 שניות" title="אחורה 10 שניות (J)"><svg viewBox="0 0 24 24"><polyline points="1 4 1 10 7 10"/><path d="M3.5 15a9 9 0 1 0 2.1-9.4L1 10"/></svg></button>
+          <button class="cbtn" id="c-fwd" aria-label="קדימה 10 שניות" title="קדימה 10 שניות (L)"><svg viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><path d="M20.5 15a9 9 0 1 1-2.1-9.4L23 10"/></svg></button>
+          <span class="time" id="c-time" dir="ltr">0:00 / 0:00</span>
+          <span class="gap"></span>
+          <button class="cbtn" id="c-mark" aria-label="הוסף סימנייה" title="הוסף סימנייה (B)"><svg viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg></button>
+          <button class="cbtn" id="c-cc" aria-label="כתוביות" title="כתוביות (C)"><svg viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M9.5 10.5a2.5 2.5 0 1 0 0 3M17 10.5a2.5 2.5 0 1 0 0 3"/></svg></button>
+          <select class="rate" id="c-rate" aria-label="מהירות ניגון">
+            <option value="0.75">0.75×</option><option value="1" selected>1×</option>
+            <option value="1.25">1.25×</option><option value="1.5">1.5×</option>
+            <option value="1.75">1.75×</option><option value="2">2×</option>
+          </select>
+          <span class="vol">
+            <button class="cbtn" id="c-mute" aria-label="השתקה" title="השתקה (M)"><svg viewBox="0 0 24 24"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/><path d="M18.5 5.5a9 9 0 0 1 0 13"/></svg></button>
+            <input type="range" id="c-vol" min="0" max="1" step="0.05" value="1" aria-label="עוצמת קול">
+          </span>
+          <button class="cbtn" id="c-pip" aria-label="תמונה בתוך תמונה" title="תמונה בתוך תמונה"><svg viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="16" rx="2"/><rect x="12" y="12" width="8" height="6" rx="1"/></svg></button>
+          <button class="cbtn" id="c-fs" aria-label="מסך מלא" title="מסך מלא (F)"><svg viewBox="0 0 24 24"><path d="M8 3H5a2 2 0 0 0-2 2v3M16 3h3a2 2 0 0 1 2 2v3M8 21H5a2 2 0 0 1-2-2v-3M16 21h3a2 2 0 0 0 2-2v-3"/></svg></button>
+        </div>
+      </div>
+    </div>
+
+    <div class="chead">
+      <div>
+        <div class="lbl" id="ch-lbl"></div>
+        <h1 id="ch-title"></h1>
+        <p id="ch-one"></p>
+      </div>
+      <div class="acts">
+        <button class="btn" id="btn-done"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg><span>סמן כהושלם</span></button>
+        <div class="navpill" role="group" aria-label="מעבר בין פרקים">
+          <button id="btn-prev" title="הפרק הקודם" aria-label="הפרק הקודם"><svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></button>
+          <button id="btn-next" title="הפרק הבא" aria-label="הפרק הבא"><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg></button>
+        </div>
+      </div>
+    </div>
+
+    <div class="tabs" role="tablist">
+      <button role="tab" id="tab-markers" aria-controls="p-markers" aria-selected="true">פרקי משנה</button>
+      <button role="tab" id="tab-bookmarks" aria-controls="p-bookmarks" aria-selected="false">סימניות<span class="count" id="cnt-bm">0</span></button>
+      <button role="tab" id="tab-notes" aria-controls="p-notes" aria-selected="false">הערות</button>
+      <button role="tab" id="tab-transcript" aria-controls="p-transcript" aria-selected="false">תמלול</button>
+      <button role="tab" id="tab-reading" aria-controls="p-reading" aria-selected="false">חומר קריאה</button>
+    </div>
+
+    <section class="panel" id="p-markers" role="tabpanel" aria-labelledby="tab-markers">
+      <div class="panel-scroll" id="markers"></div>
+    </section>
+
+    <section class="panel" id="p-bookmarks" role="tabpanel" aria-labelledby="tab-bookmarks" hidden>
+      <div class="notes-bar" style="margin-bottom:12px">
+        <button class="btn pri" id="bm-add"><svg viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>סמן את הרגע הזה</button>
+        <span class="saved">הקיצור: <kbd>B</kbd> בזמן צפייה</span>
+      </div>
+      <div class="panel-scroll" id="bookmarks"></div>
+    </section>
+
+    <section class="panel" id="p-notes" role="tabpanel" aria-labelledby="tab-notes" hidden>
+      <div class="notes-wrap">
+        <div class="notes-bar">
+          <button class="btn" id="note-stamp">הוסף חותמת זמן</button>
+          <span class="saved" id="note-saved"></span>
+        </div>
+        <textarea id="notes" placeholder="ההערות שלכם לפרק הזה. נשמרות אוטומטית בדפדפן הזה."></textarea>
+      </div>
+    </section>
+
+    <section class="panel" id="p-transcript" role="tabpanel" aria-labelledby="tab-transcript" hidden>
+      <div class="tx-bar">
+        <input type="search" id="tx-search" placeholder="חיפוש בתמלול…" aria-label="חיפוש בתמלול">
+        <button class="btn" id="tx-follow" aria-pressed="true">עוקב אחרי הסרטון</button>
+        <button class="btn" id="tx-copy">העתק תמלול</button>
+      </div>
+      <div class="panel-scroll" id="transcript"></div>
+    </section>
+
+    <section class="panel" id="p-reading" role="tabpanel" aria-labelledby="tab-reading" hidden>
+      <div class="reading" id="reading"></div>
+    </section>
+
+    <nav class="upnext" id="upnext" aria-label="מעבר לפרק הבא"></nav>
+    </div>
+  </div>
+</div>
+
+<dialog class="modal" id="dlg-help">
+  <h3>קיצורי מקלדת</h3>
+  <div class="keys">
+    <kbd>רווח</kbd><span>נגן / השהה</span>
+    <kbd>J</kbd><span>10 שניות אחורה</span>
+    <kbd>L</kbd><span>10 שניות קדימה</span>
+    <kbd>← →</kbd><span>5 שניות</span>
+    <kbd>↑ ↓</kbd><span>עוצמת קול</span>
+    <kbd>M</kbd><span>השתקה</span>
+    <kbd>C</kbd><span>כתוביות</span>
+    <kbd>F</kbd><span>מסך מלא</span>
+    <kbd>B</kbd><span>סימנייה ברגע הנוכחי</span>
+    <kbd>P / N</kbd><span>פרק משנה קודם / הבא</span>
+    <kbd>&lt; &gt;</kbd><span>האטה / האצה</span>
+    <kbd>0 – 9</kbd><span>קפיצה ל-0%–90%</span>
+    <kbd>?</kbd><span>החלון הזה</span>
+  </div>
+  <button class="btn close" id="help-close">סגירה</button>
+</dialog>
+
+
+<script src="data/course.js?v=1788627514"></script>
+<script src="data/transcripts.js?v=1788627514"></script>
+<script src="data/reading.js?v=1788627514"></script>
+<script src="assets/course.js?v=1788627514"></script>
+</body>
+</html>

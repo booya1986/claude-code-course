@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<title>og</title>
+<style>
+  @font-face { font-family: 'Noto Sans Hebrew'; font-weight: 300 800;
+    src: url('assets/fonts/noto-sans-hebrew-hebrew.woff2') format('woff2');
+    unicode-range: U+0307-0308, U+0590-05FF, U+200C-2010, U+20AA, U+25CC, U+FB1D-FB4F; }
+  @font-face { font-family: 'Noto Sans Hebrew'; font-weight: 300 800;
+    src: url('assets/fonts/noto-sans-hebrew-latin.woff2') format('woff2');
+    unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+2000-206F; }
+  @font-face { font-family: 'JetBrains Mono'; font-weight: 600;
+    src: url('assets/fonts/jetbrains-mono-latin-600.woff2') format('woff2'); }
+  * { box-sizing: border-box; margin: 0; }
+  body { width: 1200px; height: 630px; background: #1b1b1b; color: #dcdad5; overflow: hidden;
+    font-family: 'Noto Sans Hebrew', sans-serif; position: relative; }
+  .glow { position: absolute; inset: 0;
+    background: radial-gradient(ellipse at 70% 20%, rgba(34,197,94,.18) 0%, rgba(34,197,94,.04) 40%, transparent 70%); }
+  .grid { position: absolute; inset: 0;
+    background-image: linear-gradient(to right, rgba(255,255,255,.03) 1px, transparent 1px),
+                      linear-gradient(to bottom, rgba(255,255,255,.03) 1px, transparent 1px);
+    background-size: 40px 40px; }
+  .wrap { position: relative; height: 100%; display: grid; grid-template-columns: 1fr 390px; }
+  .left { height: 630px; padding: 40px 54px 34px; display: flex; flex-direction: column; justify-content: center; }
+  .lbl { font-family: 'JetBrains Mono', monospace; font-size: 18px; font-weight: 600;
+    letter-spacing: .06em; color: #22C55E; margin-bottom: 14px; }
+  h1 { font-size: 56px; line-height: 1.15; font-weight: 700; color: #dcdad5; letter-spacing: -.02em; }
+  h1 mark { background: none; color: #22C55E; text-shadow: 0 0 40px rgba(34,197,94,.6); }
+  p { margin-top: 16px; font-size: 21px; line-height: 1.5; color: #a09d96; max-width: 600px; }
+  .chips { display: flex; gap: 9px; margin-top: 22px; flex-wrap: nowrap; }
+  .chips span { border: 1px solid rgba(255,255,255,.14); border-radius: 999px;
+    padding: 6px 16px; font-size: 18px; color: #c5c1b9; white-space: nowrap; }
+  .chips b { color: #4ADE80; }
+  .right { height: 630px; position: relative; display: grid; grid-template-rows: repeat(3, minmax(0,1fr)); gap: 14px;
+    padding: 30px 30px 30px 0; }
+  .right img { width: 100%; height: 100%; object-fit: cover; border-radius: 14px;
+    border: 1px solid rgba(255,255,255,.09); }
+  .foot { display: flex; align-items: center; gap: 12px; margin-top: auto; }
+  .foot img { width: 40px; height: 40px; border-radius: 10px; }
+  .foot b { font-size: 20px; color: #dcdad5; }
+  .foot span { font-size: 18px; color: #a09d96; }
+</style>
+</head>
+<body>
+<div class="glow"></div><div class="grid"></div>
+<div class="wrap">
+  <div class="left">
+    <div>
+    <div class="lbl">קורס וידאו בעברית</div>
+    <h1>9 עקרונות העבודה<br>עם <mark>Claude Code</mark></h1>
+    <p>מסביבת העבודה ועד רוטינות בענן — כל עיקרון בפרק משלו, עם וידאו, תמלול וחומר קריאה.</p>
+    <div class="chips"><span><b>9</b> עקרונות</span><span><b>4</b> פרקי וידאו</span><span>כ־<b>28</b> דקות</span></div>
+    </div>
+    <div class="foot"><img src="imgs/logo.png" alt=""><div><b>אבי לוי</b> <span>· avilevi.co.il</span></div></div>
+  </div>
+  <div class="right">
+    <img src="imgs/thumbs/ch1.jpg" alt="">
+    <img src="imgs/thumbs/ch3.jpg" alt="">
+    <img src="imgs/thumbs/ch4.jpg" alt="">
+  </div>
+</div>
+</body>
+</html>

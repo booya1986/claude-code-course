@@ -1,0 +1,4 @@
+# the local symlink to the raw Screen Studio / edit folders (hundreds of MB, outside the repo)
+media
+.playwright-mcp/
+.DS_Store
