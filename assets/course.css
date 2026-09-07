@@ -497,7 +497,11 @@ dialog.modal h3 { margin: 0 0 14px; color: var(--text-1); font-size: 1.1rem; }
 
 /* ---------- welcome ---------- */
 .welcome[hidden], .player[hidden] { display: none; }
-.welcome { max-width: 900px; padding-bottom: 30px; }
+.welcome { padding-bottom: 30px; }
+/* The welcome block fills the content column like the chapter player does, so a
+   wide desktop doesn't leave a dead strip beside it; only running text is capped
+   at a readable measure. On mobile the column is already full width. */
+.w-hero p { max-width: 860px; }
 .w-hero { border: 1px solid var(--border); background: var(--card-bg); border-radius: 16px; padding: 0 0 28px; position: relative; overflow: hidden; }
 .w-hero > :not(.introwrap) { margin-inline: 32px; }
 .introwrap { position: relative; margin: 0 0 24px; background: #000; border-block-end: 1px solid var(--border); }
