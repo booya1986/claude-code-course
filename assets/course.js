@@ -201,7 +201,7 @@
   function renderWelcome() {
     var withVideo = C.chapters.filter(function (c) { return c.video; });
     var secs = withVideo.reduce(function (a, c) { return a + (c.duration || 0); }, 0);
-    $('w-meta').textContent = C.chapters.length + ' עקרונות · ' + withVideo.length + ' פרקי וידאו · כ־' + Math.round(secs / 60) + ' דקות צפייה';
+    $('w-meta').textContent = C.chapters.length + ' פרקים, כ-' + Math.round(secs / 60) + ' דקות';
 
     var g = $('w-grid');
     g.textContent = '';
