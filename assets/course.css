@@ -306,6 +306,22 @@ input, textarea { caret-color: var(--accent); }
 .rate:hover { background: rgba(255,255,255,.14); }
 .rate option { background: #1b1b1b; }
 
+
+/* ---------- controls below the picture ----------
+   The videos carry Hebrew subtitles burned into the bottom of the frame. An overlaid control bar
+   would run its scrubber straight through them, so the bar sits under the picture instead and
+   never auto-hides (it no longer covers anything). */
+.stage.bar-below .ctrls {
+  position: static; background: #0d0d0d; border-block-start: 1px solid var(--border);
+  padding: 6px 12px 6px; opacity: 1; pointer-events: auto;
+}
+.stage.bar-below.hidectl { cursor: auto; }
+.stage.bar-below.hidectl .ctrls { opacity: 1; pointer-events: auto; }
+.stage.bar-below:fullscreen, .stage.bar-below:-webkit-full-screen { flex-direction: column; align-items: stretch; }
+.stage.bar-below:fullscreen video, .stage.bar-below:-webkit-full-screen video { flex: 1 1 auto; min-height: 0; height: auto; }
+.stage.bar-below:fullscreen .ctrls { padding: 10px 26px 14px; }
+@media (max-width: 620px) { .stage.bar-below .ctrls { padding: 2px 6px 2px; } }
+
 /* ---------- chapter head ---------- */
 .chead { display: flex; align-items: flex-start; gap: 16px; margin: 20px 2px 16px; flex-wrap: wrap; }
 .chead > div:first-child { flex: 1 1 320px; min-width: 0; }

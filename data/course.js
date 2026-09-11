@@ -5,7 +5,8 @@ window.COURSE = {
   author: "אבי לוי",
   blog: "https://www.avilevi.co.il",
   youtube: "https://www.youtube.com/channel/UCdz7iR7sYg2gevHXEyeeM1Q",
-  intro: { video: "web-media/intro.mp4", poster: "imgs/intro-poster.jpg", duration: 26.88 },
+  burnedSubs: true,   // every part ships with Hebrew subtitles burned into the picture
+  intro: { video: "web-media/intro.mp4?v=1080", poster: "imgs/intro-poster.jpg", duration: 26.88 },
   chapters: [
     {
       n: 1,
@@ -14,7 +15,7 @@ window.COURSE = {
       oneliner: "טרמינל, אפליקציה או IDE: אותו כלי, שלוש דלתות כניסה.",
       thumb: "imgs/thumbs/ch1.jpg",
       poster: "imgs/thumbs/ch1.jpg",
-      video: "web-media/ch1.mp4",
+      video: "web-media/ch1.mp4?v=1080",
       duration: 463,
       markers: [
         { t: 0,     title: "מה זה בעצם Claude Code" },
@@ -37,7 +38,7 @@ window.COURSE = {
       oneliner: "מודל חזק לתכנון, מודל זול לביצוע. זה מה שקובע כמה תשלמו.",
       thumb: "imgs/thumbs/ch2.jpg",
       poster: "imgs/thumbs/ch2.jpg",
-      video: "web-media/ch2.mp4",
+      video: "web-media/ch2.mp4?v=1080",
       duration: 332.6,
       markers: [
         { t: 0,     title: "איפה בוחרים מודל" },
@@ -59,7 +60,7 @@ window.COURSE = {
       oneliner: "מצב תכנון חוסך את רוב התיקונים, והטוקנים שלו מחזירים את עצמם.",
       thumb: "imgs/thumbs/ch3.jpg",
       poster: "imgs/thumbs/ch3.jpg",
-      video: "web-media/ch3.mp4",
+      video: "web-media/ch3.mp4?v=1080",
       duration: 545.03,
       markers: [
         { t: 0,     title: "למה מתכננים לפני שבונים" },
@@ -85,7 +86,7 @@ window.COURSE = {
       oneliner: "לכל שיחה יש חלון בגודל קבוע. כשהוא מתמלא, האיכות יורדת.",
       thumb: "imgs/thumbs/ch4.jpg",
       poster: "imgs/thumbs/ch4.jpg",
-      video: "web-media/ch4.mp4",
+      video: "web-media/ch4.mp4?v=1080",
       duration: 325.27,
       markers: [
         { t: 0,     title: "מה זה טוקן" },
@@ -105,8 +106,66 @@ window.COURSE = {
         { t: 317.2, title: "סיום ומה בפרק הבא" }
       ]
     },
-    { n: 5, title: "הנחיות וזיכרון", thumb: "imgs/thumbs/ch5.jpg", subtitle: "מה קלוד יודע עליכם בכל סשן", oneliner: "קובץ הנחיות טוב חוסך לחזור על אותם הסברים בכל פעם." },
-    { n: 6, title: "סקילים", thumb: "imgs/thumbs/ch6.jpg", subtitle: "מלמדים את קלוד איך אתם רוצים שדברים ייעשו", oneliner: "סקיל הוא נוהל עבודה כתוב, שקלוד שולף בדיוק כשצריך אותו." },
+    {
+      n: 5,
+      title: "הנחיות וזיכרון",
+      subtitle: "מה קלוד יודע עליכם בכל סשן",
+      oneliner: "קובץ הנחיות טוב חוסך לחזור על אותם הסברים בכל פעם.",
+      thumb: "imgs/thumbs/ch5.jpg",
+      poster: "imgs/thumbs/ch5.jpg",
+      video: "web-media/ch5.mp4?v=1080",
+      duration: 564.53,
+      markers: [
+        { t: 0,     title: "מה זה CLAUDE.md" },
+        { t: 9.5,   title: "מה זה בכלל קובץ Markdown" },
+        { t: 31.5,  title: "נטען פעם אחת ונשאר כל השיחה" },
+        { t: 44.6,  title: "CLAUDE.md בתוך פרויקט אמיתי" },
+        { t: 111.6, title: "הסטק ומבנה הפרויקט" },
+        { t: 154.6, title: "שמירה בזיכרון המטמון (prompt caching)" },
+        { t: 186.1, title: "למה פחות מ־200 שורות" },
+        { t: 212.5, title: "MEMORY.md: הזיכרון שקלוד כותב לעצמו" },
+        { t: 240,   title: "מוסיפים הנחיה תוך כדי עבודה" },
+        { t: 264.5, title: "הפניה לקבצים עם @" },
+        { t: 292.3, title: "סגנון התשובה" },
+        { t: 340.1, title: "שתי רמות: גלובלי ופרויקט" },
+        { t: 380,   title: "הקובץ הגלובלי מהטרמינל" },
+        { t: 440.8, title: "כלל אצבע: מה הולך לאן" },
+        { t: 473.7, title: "הפקודה init/" },
+        { t: 498.7, title: "הפקודה doctor/" },
+        { t: 544.3, title: "המדריך הרשמי של Anthropic" },
+        { t: 556.7, title: "סיום ומה בפרק הבא" }
+      ]
+    },
+    {
+      n: 6,
+      title: "סקילים",
+      subtitle: "מלמדים את קלוד איך אתם רוצים שדברים ייעשו",
+      oneliner: "סקיל הוא נוהל עבודה כתוב, שקלוד שולף בדיוק כשצריך אותו.",
+      thumb: "imgs/thumbs/ch6.jpg",
+      poster: "imgs/thumbs/ch6.jpg",
+      video: "web-media/ch6.mp4?v=1080",
+      duration: 640,
+      markers: [
+        { t: 0,     title: "מה זה סקיל" },
+        { t: 25.6,  title: "כמו ניאו שלומד קונג פו" },
+        { t: 29.5,  title: "סקיל הוא תיקייה: SKILL.md וקבצים נלווים" },
+        { t: 47,    title: "במקום להדביק את אותו פרומפט כל פעם" },
+        { t: 62.9,  title: "נטען לחלון ההקשר רק כשמשתמשים בו" },
+        { t: 74.4,  title: "דוגמה: עמוד נחיתה של AI" },
+        { t: 120,   title: "הסקיל Impeccable" },
+        { t: 213.4, title: "שתי דרכים להפעיל סקיל" },
+        { t: 259.1, title: "ביקורת עיצוב עם שני סוכנים" },
+        { t: 325.2, title: "פקודה אחת במקום פרומפט ארוך" },
+        { t: 400,   title: "שאלות הבהרה והתוצאה" },
+        { t: 465,   title: "עוד סקילים: מחקר עם מקורות" },
+        { t: 492.3, title: "ארבע דרכים להשיג סקיל" },
+        { t: 498.8, title: "איפה מוצאים סקילים" },
+        { t: 541.6, title: "הופכים שיחה לסקיל" },
+        { t: 566.4, title: "skill-creator/" },
+        { t: 581.8, title: "ההמלצה שלי" },
+        { t: 600,   title: "זהירות: סקיל הוא לא רק טקסט" }
+      ]
+    },
     { n: 7, title: "חיבור לכלים", thumb: "imgs/thumbs/ch7.jpg", subtitle: "מחברים את קלוד לכלים שלכם", oneliner: "קונקטורים ושרתי MCP נותנים לקלוד גישה למייל, ליומן ולקבצים." },
     { n: 8, title: "הוקים", thumb: "imgs/thumbs/ch8.jpg", subtitle: "פעולות שתמיד קורות", oneliner: "הוק הוא כלל קשיח שרץ בכל פעם, בלי לסמוך על הזיכרון של קלוד." },
     { n: 9, title: "רוטינות", thumb: "imgs/thumbs/ch9.jpg", subtitle: "אוטומציות מתוזמנות שרצות בענן", oneliner: "משימה שרצה לבד בזמן קבוע, גם כשהמחשב שלכם סגור." }

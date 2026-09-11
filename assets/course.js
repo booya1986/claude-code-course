@@ -5,6 +5,8 @@
   var KEY = 'cc-course-v1';
   var $ = function (id) { return document.getElementById(id); };
   var TOUCH = window.matchMedia && window.matchMedia('(hover: none)').matches;
+  // The videos carry their own Hebrew subtitles, burned into the picture. Overlay captions would stack a second line on top.
+  var BURNED = !!C.burnedSubs;
 
   var video = $('video'), stage = $('stage');
   var state = load();
@@ -588,7 +590,7 @@
   var lastCue = -1;
   function updateTranscript(t) {
     var i = cueIndexAt(t);
-    if (state.prefs.cc) {
+    if (state.prefs.cc && !BURNED) {
       var c = cues[i];
       var cap = $('captions');
       if (c && t <= c.e + 0.8) {
@@ -928,6 +930,7 @@
   function idle() {
     stage.classList.remove('hidectl');
     clearTimeout(hideTimer);
+    if (BURNED) return;
     hideTimer = setTimeout(function () { if (!video.paused && !stage.contains(document.activeElement)) stage.classList.add('hidectl'); }, 2600);
   }
   stage.addEventListener('pointermove', idle);
@@ -966,7 +969,7 @@
       case 'ArrowDown': $('c-vol').value = Math.max(0, video.volume - 0.1); $('c-vol').dispatchEvent(new Event('input')); e.preventDefault(); break;
       case 'm': case 'M': $('c-mute').click(); break;
       case 'f': case 'F': $('c-fs').click(); break;
-      case 'c': case 'C': $('c-cc').click(); break;
+      case 'c': case 'C': if (!BURNED) $('c-cc').click(); break;
       case 'b': case 'B': addBookmark(); e.preventDefault(); break;
       case 'n': case 'N': jumpMarker(1); break;
       case 'p': case 'P': jumpMarker(-1); break;
@@ -1003,6 +1006,7 @@
   /* ---------------- boot ---------------- */
   $('c-rate').value = String(state.prefs.rate);
   $('c-vol').value = String(state.prefs.volume);
+  if (BURNED) { $('c-cc').hidden = true; $('help-cc').hidden = true; $('help-cc-k').hidden = true; stage.classList.add('bar-below'); }
   $('c-cc').classList.toggle('on', !!state.prefs.cc);
   $('c-cc').setAttribute('aria-pressed', String(!!state.prefs.cc));
   syncFollow();
