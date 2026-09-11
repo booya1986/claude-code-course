@@ -655,6 +655,18 @@
         tables[i].parentNode.insertBefore(w, tables[i]); w.appendChild(tables[i]);
       }
     }
+    // label every table cell with its column header, so a phone can show a row as a stacked card
+    var tbs = box.querySelectorAll('table');
+    for (var ti = 0; ti < tbs.length; ti++) {
+      var heads = [].map.call(tbs[ti].querySelectorAll('thead th'), function (th) { return th.textContent.trim(); });
+      [].forEach.call(tbs[ti].querySelectorAll('tbody tr'), function (tr) {
+        [].forEach.call(tr.children, function (td, ci) {
+          if (heads[ci]) td.setAttribute('data-label', heads[ci]);
+          // numbers like "$1 / $5" must stay left-to-right even when their cell (and its label) is right-to-left
+          if (td.classList.contains('num') && !td.querySelector('.nv')) td.innerHTML = '<span class="nv" dir="ltr">' + td.innerHTML + '</span>';
+        });
+      });
+    }
     // box headings follow the principle's h2 directly, so they are h3 in this outline, not h4
     var hs = box.querySelectorAll('.box > h4');
     for (var h = 0; h < hs.length; h++) {

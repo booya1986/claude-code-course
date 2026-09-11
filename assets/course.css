@@ -481,9 +481,10 @@ kbd { background: rgba(255,255,255,.08); border: 1px solid var(--border-2); bord
 .reading tr:last-child td { border-bottom: none; }
 .reading td strong { color: var(--text-1); }
 .reading .tbl-hint { display: none !important; }
-.reading .num { direction: ltr; unicode-bidi: isolate; font-family: "JetBrains Mono", monospace; font-size: .9em; }
-.reading .cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin: 1.4rem 0; }
-.reading .cards.two { grid-template-columns: repeat(2, 1fr); }
+.reading .num { font-family: "JetBrains Mono", monospace; font-size: .9em; }
+.reading .num .nv { direction: ltr; unicode-bidi: isolate; display: inline-block; }
+.reading .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr)); gap: 14px; margin: 1.4rem 0; }
+.reading .cards.two { grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr)); }
 .reading .card { background: var(--card-bg); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px 18px; }
 .reading .card h4 { margin: 0 0 .4rem; font-size: 1.05rem; color: var(--text-1); }
 .reading .card h4 .k { color: var(--accent); font-size: .82rem; font-weight: 700; display: block; margin-bottom: 4px; }
@@ -498,6 +499,27 @@ kbd { background: rgba(255,255,255,.08); border: 1px solid var(--border-2); bord
 .reading img { max-width: 100%; height: auto; border-radius: 12px; }
 .reading svg { max-width: 100%; }
 .reading h2 svg, .reading h3 svg, .reading h4 svg, .reading p svg, .reading li svg { width: 15px; height: 15px; flex: none; }
+
+
+/* reading content on a phone */
+@media (max-width: 620px) {
+  .reading { font-size: 1rem; }
+  .reading .oneliner { font-size: 1.06rem; padding: 14px 16px; }
+  .reading .box { padding: 16px 16px; margin: 1.2rem 0; }
+  .reading .card { padding: 14px 16px; }
+  .reading .scale { gap: 5px; margin-top: 2rem; }
+  .reading .scale span { min-width: 0; padding: 8px 2px; font-size: .74rem; }
+  /* a many-column table becomes one stacked card per row, each value labelled with its column */
+  .reading .tbl { border: none; border-radius: 0; overflow: visible; }
+  .reading table, .reading tbody, .reading tr, .reading td { display: block; width: 100%; }
+  .reading thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+  .reading tbody tr { border: 1px solid var(--border); border-radius: 12px; background: var(--card-bg); padding: 12px 14px; margin-bottom: 10px; }
+  .reading td { border: none; padding: 3px 0; }
+  .reading td[data-label]::before { content: attr(data-label); display: block; color: var(--text-3); font-size: .78rem; font-family: "Noto Sans Hebrew", sans-serif; }
+  .reading td:first-child { font-size: 1.05rem; padding-bottom: 6px; }
+  .reading td:first-child::before { display: none; }
+  .reading td.num { direction: rtl; }
+}
 
 /* ---------- dialog ---------- */
 dialog.modal {
