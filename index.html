@@ -26,9 +26,10 @@
 <meta name="twitter:description" content="מסביבת העבודה ועד רוטינות בענן. כל עיקרון בפרק משלו, עם וידאו, תמלול, סימניות, הערות וחומר קריאה.">
 <meta name="twitter:image" content="https://booya1986.github.io/claude-code-course/imgs/og.png">
 <meta name="theme-color" content="#1b1b1b">
-<link rel="stylesheet" href="assets/course.css?v=1788627514">
+<link rel="stylesheet" href="assets/course.css?v=20260911">
 </head>
 <body>
+<a class="skip" href="#stage">דלגו לנגן</a>
 <div class="grid-bg" aria-hidden="true">
   <div class="grid-bg__glow"></div>
   <div class="grid-bg__grid"></div>
@@ -39,20 +40,17 @@
     <img src="imgs/logo.png" alt="">
     <div>
       <b class="long">9 עקרונות העבודה עם Claude Code</b>
-      <b class="short">9 עקרונות · Claude Code</b>
+      <b class="short">9 עקרונות</b>
       <span>קורס וידאו · אבי לוי</span>
     </div>
   </button>
   <div class="spacer"></div>
-  <div class="overall" title="התקדמות בקורס">
-    <svg class="ring" viewBox="0 0 36 36" aria-hidden="true">
-      <circle class="bg" cx="18" cy="18" r="15.5"></circle>
-      <circle class="fg" id="ring-fg" cx="18" cy="18" r="15.5" stroke-dasharray="0 100"></circle>
-    </svg>
-    <span id="overall-txt">0% הושלמו</span>
+  <div class="ctx" id="ctx" role="img" aria-label="התקדמות בקורס">
+    <span class="ctx-cmd" aria-hidden="true">/context</span>
+    <span class="ctx-cells" id="ctx-cells" aria-hidden="true"></span>
+    <span class="ctx-pct" id="ctx-pct" aria-hidden="true">0%</span>
   </div>
-  <div id="topbar-bar"></div>
-  <button class="icon-btn" id="btn-help" title="קיצורי מקלדת (?)" aria-label="קיצורי מקלדת">
+  <button class="icon-btn" id="btn-help" title="עזרה וקיצורים (?)" aria-label="עזרה וקיצורים">
     <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.5 9a2.5 2.5 0 1 1 3.4 2.3c-.6.3-.9.8-.9 1.4v.6"/><path d="M12 17h.01"/></svg>
   </button>
 </header>
@@ -81,13 +79,12 @@
             <span>לצפייה שוב</span>
           </button>
         </div>
-        <span class="w-lbl">קורס וידאו · אבי לוי</span>
         <h1>9 עקרונות העבודה עם <mark>Claude Code</mark></h1>
         <p class="w-lead">הקורס עובר על תשעת העקרונות של עבודה נכונה עם <strong>Claude Code</strong>, סוכן הקוד של Anthropic, בעברית פשוטה וברורה. כל עיקרון מקבל פרק משלו — וידאו, פרקי משנה, תמלול, סימניות, הערות וחומר קריאה — וגם מי שמעולם לא כתב שורת קוד יכול לעבור אותו מההתחלה עד הסוף.</p>
-        <div class="w-stats" id="w-stats"></div>
+        <p class="w-meta" id="w-meta"></p>
         <div class="w-cta">
-          <button class="btn pri" id="w-start">התחלה מפרק 1</button>
-          <button class="btn" id="w-resume" hidden></button>
+          <button class="btn pri" id="w-primary"></button>
+          <button class="btn" id="w-secondary" hidden></button>
         </div>
       </div>
 
@@ -95,30 +92,26 @@
       <div class="w-grid" id="w-grid"></div>
 
       <h2 class="w-h2">איך עובדים בסביבה הזאת</h2>
-      <div class="w-how">
-        <div class="w-card">
-          <span class="w-ic"><svg viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/><circle cx="8" cy="6" r="2"/><circle cx="15" cy="12" r="2"/><circle cx="11" cy="18" r="2"/></svg></span>
-          <h3>פרקי משנה</h3>
-          <p>כל סרטון מחולק לנושאים. לחיצה על נושא קופצת ישר לרגע שבו הוא מתחיל, והסימונים על סרגל הזמן מראים איפה הם יושבים.</p>
-        </div>
-        <div class="w-card">
+      <ul class="w-how">
+        <li>
+          <span class="w-ic"><svg viewBox="0 0 24 24"><polyline points="4 7 6 9 10 5"/><line x1="13" y1="7" x2="20" y2="7"/><polyline points="4 15 6 17 10 13"/><line x1="13" y1="15" x2="20" y2="15"/></svg></span>
+          <div><h3>פרקי משנה</h3><p>כל סרטון מחולק לנושאים, כמו תוכנית עבודה. לחיצה על נושא קופצת ישר לרגע שבו הוא מתחיל.</p></div>
+        </li>
+        <li>
           <span class="w-ic"><svg viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg></span>
-          <h3>סימניות</h3>
-          <p>בכל רגע בסרטון אפשר ללחוץ <kbd>B</kbd> ולסמן אותו. הסימנייה נשמרת עם הערה שלכם ומופיעה כסיכה על סרגל הזמן.</p>
-        </div>
-        <div class="w-card">
+          <div><h3>סימניות</h3><p>כפתור הסימנייה בנגן שומר את הרגע ואת המשפט שנאמר בו, ומציב סיכה על סרגל הזמן.</p></div>
+        </li>
+        <li>
           <span class="w-ic"><svg viewBox="0 0 24 24"><path d="M4 4h12l4 4v12H4z"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="8" y1="16" x2="14" y2="16"/></svg></span>
-          <h3>הערות</h3>
-          <p>לכל פרק יש פנקס הערות שנשמר אוטומטית, עם כפתור שמכניס את חותמת הזמן הנוכחית לתוך הטקסט.</p>
-        </div>
-        <div class="w-card">
+          <div><h3>הערות</h3><p>לכל פרק יש קובץ CLAUDE.md משלכם: מה למדתם, במילים שלכם, עם חותמות זמן.</p></div>
+        </li>
+        <li>
           <span class="w-ic"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><line x1="7" y1="9" x2="17" y2="9"/><line x1="7" y1="13" x2="15" y2="13"/><line x1="7" y1="17" x2="12" y2="17"/></svg></span>
-          <h3>תמלול וחומר קריאה</h3>
-          <p>תמלול מלא שרץ עם הסרטון וניתן לחיפוש, ולצידו הסבר כתוב ומפורט של אותו עיקרון — לקריאה בלי וידאו.</p>
-        </div>
-      </div>
+          <div><h3>תמלול וחומר קריאה</h3><p>תמלול מלא שרץ עם הסרטון וניתן לחיפוש, ולצידו ההסבר הכתוב של אותו עיקרון.</p></div>
+        </li>
+      </ul>
 
-      <p class="w-note">ההתקדמות, הסימניות וההערות נשמרות בדפדפן הזה בלבד. אפשר לחזור למסך הזה בכל רגע בלחיצה על הלוגו למעלה, ולראות את רשימת קיצורי המקלדת בלחיצה על <kbd>?</kbd>.</p>
+      <p class="w-note">ההתקדמות, הסימניות וההערות נשמרות בדפדפן הזה בלבד. הלוגו למעלה מחזיר לכאן, וכפתור העזרה מסביר את כל הקיצורים.</p>
 
       <footer class="w-foot">
         <img src="imgs/logo.png" alt="">
@@ -135,9 +128,10 @@
       <button class="bigplay" id="bigplay" aria-label="נגן">
         <svg viewBox="0 0 24 24"><polygon points="6 3 21 12 6 21 6 3"/></svg>
       </button>
-      <div class="toast" id="toast"></div>
+      <div class="toast" id="toast" role="status" aria-live="polite"><span class="toast-msg" id="toast-msg"></span><button class="toast-act" id="toast-act" hidden></button></div>
+      <div class="endcard" id="endcard" hidden></div>
       <div class="ctrls" id="ctrls">
-        <div class="scrub" id="scrub" role="slider" tabindex="0" aria-label="מיקום בסרטון" aria-valuemin="0" aria-valuenow="0" aria-valuemax="100">
+        <div class="scrub" id="scrub" role="slider" tabindex="0" aria-label="מיקום בסרטון" aria-valuemin="0" aria-valuenow="0" aria-valuemax="100" aria-valuetext="0:00">
           <div class="track" id="track">
             <div class="buf" id="buf"></div>
             <div class="fill" id="fill"></div>
@@ -170,9 +164,9 @@
 
     <div class="chead">
       <div>
-        <div class="lbl" id="ch-lbl"></div>
         <h1 id="ch-title"></h1>
         <p id="ch-one"></p>
+        <p class="ch-meta" id="ch-meta"></p>
       </div>
       <div class="acts">
         <button class="btn" id="btn-done"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg><span>סמן כהושלם</span></button>
@@ -183,33 +177,38 @@
       </div>
     </div>
 
-    <div class="tabs" role="tablist">
-      <button role="tab" id="tab-markers" aria-controls="p-markers" aria-selected="true">פרקי משנה</button>
-      <button role="tab" id="tab-bookmarks" aria-controls="p-bookmarks" aria-selected="false">סימניות<span class="count" id="cnt-bm">0</span></button>
-      <button role="tab" id="tab-notes" aria-controls="p-notes" aria-selected="false">הערות</button>
-      <button role="tab" id="tab-transcript" aria-controls="p-transcript" aria-selected="false">תמלול</button>
-      <button role="tab" id="tab-reading" aria-controls="p-reading" aria-selected="false">חומר קריאה</button>
+    <div class="tabs" role="tablist" aria-label="תוכן הפרק">
+      <button role="tab" id="tab-markers" aria-controls="p-markers" aria-selected="true" tabindex="0">פרקי משנה</button>
+      <button role="tab" id="tab-bookmarks" aria-controls="p-bookmarks" aria-selected="false" tabindex="-1">סימניות<span class="count" id="cnt-bm">0</span></button>
+      <button role="tab" id="tab-notes" aria-controls="p-notes" aria-selected="false" tabindex="-1">הערות</button>
+      <button role="tab" id="tab-transcript" aria-controls="p-transcript" aria-selected="false" tabindex="-1">תמלול</button>
+      <button role="tab" id="tab-reading" aria-controls="p-reading" aria-selected="false" tabindex="-1">חומר קריאה</button>
     </div>
 
     <section class="panel" id="p-markers" role="tabpanel" aria-labelledby="tab-markers">
+      <p class="plan-status" id="plan-status"></p>
       <div class="panel-scroll" id="markers"></div>
     </section>
 
     <section class="panel" id="p-bookmarks" role="tabpanel" aria-labelledby="tab-bookmarks" hidden>
       <div class="notes-bar" style="margin-bottom:12px">
         <button class="btn pri" id="bm-add"><svg viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>סמן את הרגע הזה</button>
-        <span class="saved">הקיצור: <kbd>B</kbd> בזמן צפייה</span>
+        <span class="saved kbd-hint">או <kbd>B</kbd> בזמן הצפייה</span>
       </div>
       <div class="panel-scroll" id="bookmarks"></div>
     </section>
 
     <section class="panel" id="p-notes" role="tabpanel" aria-labelledby="tab-notes" hidden>
       <div class="notes-wrap">
-        <div class="notes-bar">
-          <button class="btn" id="note-stamp">הוסף חותמת זמן</button>
+        <div class="filetab">
+          <span class="fname" dir="ltr">CLAUDE.md</span>
+          <span class="fsub" id="note-sub"></span>
           <span class="saved" id="note-saved"></span>
         </div>
-        <textarea id="notes" placeholder="ההערות שלכם לפרק הזה. נשמרות אוטומטית בדפדפן הזה."></textarea>
+        <textarea id="notes" aria-label="הערות לפרק" placeholder="# מה למדתי בפרק הזה&#10;- "></textarea>
+        <div class="notes-bar">
+          <button class="btn" id="note-stamp">הוספת חותמת זמן</button>
+        </div>
       </div>
     </section>
 
@@ -231,8 +230,14 @@
   </div>
 </div>
 
-<dialog class="modal" id="dlg-help">
-  <h3>קיצורי מקלדת</h3>
+<dialog class="modal" id="dlg-help" aria-labelledby="help-title">
+  <h2 id="help-title">עזרה וקיצורים</h2>
+  <h3 class="keys-h">במגע</h3>
+  <div class="keys">
+    <kbd>הקשה</kbd><span>נגן / השהה</span>
+    <kbd>הקשה כפולה</kbd><span>10 שניות קדימה בצד ימין של הסרטון, אחורה בצד שמאל</span>
+  </div>
+  <h3 class="keys-h">במקלדת</h3>
   <div class="keys">
     <kbd>רווח</kbd><span>נגן / השהה</span>
     <kbd>J</kbd><span>10 שניות אחורה</span>
@@ -242,19 +247,20 @@
     <kbd>M</kbd><span>השתקה</span>
     <kbd>C</kbd><span>כתוביות</span>
     <kbd>F</kbd><span>מסך מלא</span>
-    <kbd>B</kbd><span>סימנייה ברגע הנוכחי</span>
+    <kbd>B</kbd><span>סימנייה ברגע הנוכחי, בלי לעצור את הסרטון</span>
     <kbd>P / N</kbd><span>פרק משנה קודם / הבא</span>
     <kbd>&lt; &gt;</kbd><span>האטה / האצה</span>
     <kbd>0 – 9</kbd><span>קפיצה ל-0%–90%</span>
     <kbd>?</kbd><span>החלון הזה</span>
+    <kbd>Esc</kbd><span>סגירת החלון</span>
   </div>
   <button class="btn close" id="help-close">סגירה</button>
 </dialog>
 
 
-<script src="data/course.js?v=1788627514"></script>
-<script src="data/transcripts.js?v=1788627514"></script>
-<script src="data/reading.js?v=1788627514"></script>
-<script src="assets/course.js?v=1788627514"></script>
+<script src="data/course.js?v=20260911"></script>
+<script src="data/transcripts.js?v=20260911"></script>
+<script src="data/reading.js?v=20260911"></script>
+<script src="assets/course.js?v=20260911"></script>
 </body>
 </html>

@@ -11,7 +11,7 @@ window.COURSE = {
       n: 1,
       title: "סביבת עבודה",
       subtitle: "איפה עובדים עם Claude Code",
-      oneliner: "טרמינל, אפליקציית שולחן העבודה או IDE — אותו כלי, שלוש דלתות כניסה.",
+      oneliner: "טרמינל, אפליקציה או IDE: אותו כלי, שלוש דלתות כניסה.",
       thumb: "imgs/thumbs/ch1.jpg",
       poster: "imgs/thumbs/ch1.jpg",
       video: "web-media/ch1.mp4",
@@ -34,7 +34,7 @@ window.COURSE = {
       n: 2,
       title: "מודלים ורמת מאמץ",
       subtitle: "איזה מודל ואיזו רמת מאמץ לכל משימה",
-      oneliner: "מודל חזק לתכנון, מודל זול לביצוע — וזה מה שקובע כמה תשלמו וכמה תחכו.",
+      oneliner: "מודל חזק לתכנון, מודל זול לביצוע. זה מה שקובע כמה תשלמו.",
       thumb: "imgs/thumbs/ch2.jpg",
       poster: "imgs/thumbs/ch2.jpg",
       video: "web-media/ch2.mp4",
@@ -56,7 +56,7 @@ window.COURSE = {
       n: 3,
       title: "תכנון לפני בנייה",
       subtitle: "קודם מתכננים, אחר כך בונים",
-      oneliner: "מצב תכנון חוסך לכם את רוב התיקונים — הטוקנים שמושקעים בו מחזירים את עצמם.",
+      oneliner: "מצב תכנון חוסך את רוב התיקונים, והטוקנים שלו מחזירים את עצמם.",
       thumb: "imgs/thumbs/ch3.jpg",
       poster: "imgs/thumbs/ch3.jpg",
       video: "web-media/ch3.mp4",
@@ -82,7 +82,7 @@ window.COURSE = {
       n: 4,
       title: "ניהול טוקנים וחלון ההקשר",
       subtitle: "הזיכרון לטווח קצר של קלוד",
-      oneliner: "כל שיחה יושבת בחלון הקשר בגודל קבוע — ברגע שהוא מתמלא, האיכות יורדת.",
+      oneliner: "לכל שיחה יש חלון בגודל קבוע. כשהוא מתמלא, האיכות יורדת.",
       thumb: "imgs/thumbs/ch4.jpg",
       poster: "imgs/thumbs/ch4.jpg",
       video: "web-media/ch4.mp4",
@@ -105,10 +105,10 @@ window.COURSE = {
         { t: 317.2, title: "סיום ומה בפרק הבא" }
       ]
     },
-    { n: 5, title: "הנחיות וזיכרון", thumb: "imgs/thumbs/ch5.jpg", subtitle: "מה קלוד יודע עליכם בכל סשן", oneliner: "קובץ הנחיות טוב חוסך לכם לחזור על אותם הסברים בכל פעם מחדש." },
-    { n: 6, title: "סקילים", thumb: "imgs/thumbs/ch6.jpg", subtitle: "מלמדים את קלוד איך אתם רוצים שדברים ייעשו", oneliner: "סקיל הוא נוהל עבודה כתוב שקלוד שולף בדיוק כשצריך אותו." },
-    { n: 7, title: "חיבור לכלים", thumb: "imgs/thumbs/ch7.jpg", subtitle: "מחברים את קלוד לכלים שלכם", oneliner: "קונקטורים ושרתי MCP נותנים לקלוד גישה למייל, ליומן, לקבצים ולשאר הכלים." },
-    { n: 8, title: "הוקים", thumb: "imgs/thumbs/ch8.jpg", subtitle: "פעולות שתמיד קורות", oneliner: "הוק הוא כלל קשיח שרץ בכל פעם, בלי להסתמך על כך שקלוד יזכור." },
+    { n: 5, title: "הנחיות וזיכרון", thumb: "imgs/thumbs/ch5.jpg", subtitle: "מה קלוד יודע עליכם בכל סשן", oneliner: "קובץ הנחיות טוב חוסך לחזור על אותם הסברים בכל פעם." },
+    { n: 6, title: "סקילים", thumb: "imgs/thumbs/ch6.jpg", subtitle: "מלמדים את קלוד איך אתם רוצים שדברים ייעשו", oneliner: "סקיל הוא נוהל עבודה כתוב, שקלוד שולף בדיוק כשצריך אותו." },
+    { n: 7, title: "חיבור לכלים", thumb: "imgs/thumbs/ch7.jpg", subtitle: "מחברים את קלוד לכלים שלכם", oneliner: "קונקטורים ושרתי MCP נותנים לקלוד גישה למייל, ליומן ולקבצים." },
+    { n: 8, title: "הוקים", thumb: "imgs/thumbs/ch8.jpg", subtitle: "פעולות שתמיד קורות", oneliner: "הוק הוא כלל קשיח שרץ בכל פעם, בלי לסמוך על הזיכרון של קלוד." },
     { n: 9, title: "רוטינות", thumb: "imgs/thumbs/ch9.jpg", subtitle: "אוטומציות מתוזמנות שרצות בענן", oneliner: "משימה שרצה לבד בזמן קבוע, גם כשהמחשב שלכם סגור." }
   ]
 };

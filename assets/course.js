@@ -4,6 +4,7 @@
   var C = window.COURSE, TX = window.COURSE_TRANSCRIPTS || {}, RD = window.COURSE_READING || {};
   var KEY = 'cc-course-v1';
   var $ = function (id) { return document.getElementById(id); };
+  var TOUCH = window.matchMedia && window.matchMedia('(hover: none)').matches;
 
   var video = $('video'), stage = $('stage');
   var state = load();
@@ -11,6 +12,7 @@
   var cues = [];           // transcript cues of the current chapter
   var cueEls = [];
   var dragging = false, saveTimer = null, hideTimer = null, notesTimer = null;
+  var saveWarned = false;
 
   var ICONS = {
     1: '<svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="14" rx="2"/><polyline points="7 9 10 12 7 15"/><line x1="12" y1="15" x2="17" y2="15"/></svg>',
@@ -23,27 +25,39 @@
     8: '<svg viewBox="0 0 24 24"><polyline points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>',
     9: '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 14"/></svg>'
   };
+  // plan-step boxes, drawn rather than typed as glyphs
+  var BOX = {
+    done: '<svg viewBox="0 0 16 16" aria-hidden="true"><rect x="1.5" y="1.5" width="13" height="13" rx="3"/><polyline points="4.5 8.2 7 10.6 11.6 5.6"/></svg>',
+    now: '<svg viewBox="0 0 16 16" aria-hidden="true"><rect x="1.5" y="1.5" width="13" height="13" rx="3"/><rect class="dot" x="5" y="5" width="6" height="6" rx="1.5"/></svg>',
+    todo: '<svg viewBox="0 0 16 16" aria-hidden="true"><rect x="1.5" y="1.5" width="13" height="13" rx="3"/></svg>'
+  };
 
   /* ---------------- storage ---------------- */
   function load() {
-    var d = { ch: {}, prefs: { rate: 1, volume: 1, muted: false, cc: false, follow: true } };
+    var d = { ch: {}, last: 0, prefs: { rate: 1, volume: 1, muted: false, cc: false, follow: true } };
     try {
       var raw = JSON.parse(localStorage.getItem(KEY) || '{}');
       if (raw && typeof raw === 'object') {
         d.ch = raw.ch || {};
+        d.last = raw.last || 0;
         for (var k in raw.prefs || {}) d.prefs[k] = raw.prefs[k];
       }
     } catch (e) {}
     return d;
   }
   function save() {
-    try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {}
+    try { localStorage.setItem(KEY, JSON.stringify(state)); }
+    catch (e) {
+      // Private windows and full storage refuse writes. Say so once, instead of losing notes silently.
+      if (!saveWarned) { saveWarned = true; toast('הדפדפן הזה לא מאפשר לשמור, ולכן ההערות וההתקדמות לא יישמרו'); }
+    }
   }
   function chs(n) {
-    if (!state.ch[n]) state.ch[n] = { pos: 0, max: 0, done: false, bm: [], notes: '' };
+    if (!state.ch[n]) state.ch[n] = { pos: 0, max: 0, read: 0, done: false, bm: [], notes: '' };
     var s = state.ch[n];
     if (!s.bm) s.bm = [];
     if (typeof s.notes !== 'string') s.notes = '';
+    if (typeof s.read !== 'number') s.read = 0;
     return s;
   }
 
@@ -54,19 +68,60 @@
     var mm = h ? (m < 10 ? '0' + m : m) : m;
     return (h ? h + ':' : '') + mm + ':' + (s < 10 ? '0' + s : s);
   }
-  function toast(msg) {
-    var el = $('toast');
-    el.textContent = msg; el.classList.add('on');
-    clearTimeout(el._t); el._t = setTimeout(function () { el.classList.remove('on'); }, 1800);
-  }
-  function pct(n) {
-    var s = chs(n), ch = byNum(n);
-    if (!ch || !ch.duration) return 0;
-    return Math.min(100, Math.round(s.max / ch.duration * 100));
-  }
   function byNum(n) {
     for (var i = 0; i < C.chapters.length; i++) if (C.chapters[i].n === n) return C.chapters[i];
     return null;
+  }
+  // One progress model for every chapter: finished = 100, video = how far you watched, reading = how far you read.
+  function progress(n) {
+    var s = chs(n), ch = byNum(n);
+    if (!ch) return 0;
+    if (s.done) return 100;
+    if (ch.video && ch.duration) return Math.min(99, Math.round(s.max / ch.duration * 100));
+    return Math.min(99, Math.round(s.read));
+  }
+  function overall() {
+    var sum = 0;
+    C.chapters.forEach(function (c) { sum += progress(c.n); });
+    return Math.round(sum / C.chapters.length);
+  }
+
+  /* toast: a single status line, optionally with one action */
+  var toastAct = null;
+  function toast(msg, actLabel, act) {
+    var el = $('toast'), btn = $('toast-act');
+    $('toast-msg').textContent = msg;
+    toastAct = act || null;
+    btn.hidden = !act;
+    if (act) btn.textContent = actLabel;
+    el.classList.add('on');
+    stage.classList.add('toasting');
+    clearTimeout(el._t);
+    el._t = setTimeout(function () { el.classList.remove('on'); stage.classList.remove('toasting'); toastAct = null; }, act ? 5000 : 2200);
+  }
+  $('toast-act').addEventListener('click', function () {
+    var fn = toastAct;
+    $('toast').classList.remove('on'); stage.classList.remove('toasting');
+    toastAct = null;
+    if (fn) fn();
+  });
+
+  /* ---------------- /context meter ---------------- */
+  function renderMeter() {
+    var box = $('ctx-cells');
+    box.textContent = '';
+    C.chapters.forEach(function (c) {
+      var cell = document.createElement('span');
+      var p = progress(c.n);
+      cell.className = 'cell' + (p >= 100 ? ' full' : '');
+      cell.innerHTML = '<i style="--p:' + (p / 100) + '"></i>';
+      box.appendChild(cell);
+    });
+    var o = overall();
+    $('ctx-pct').textContent = o + '%';
+    var done = C.chapters.filter(function (c) { return chs(c.n).done; }).length;
+    $('ctx').setAttribute('aria-label', 'התקדמות בקורס: ' + o + '%, ' + done + ' מתוך ' + C.chapters.length + ' פרקים הושלמו');
+    $('ctx').title = o + '% מהקורס · ' + done + ' מתוך ' + C.chapters.length + ' פרקים הושלמו';
   }
 
   /* ---------------- rail ---------------- */
@@ -74,39 +129,31 @@
     var box = $('chaplist');
     box.textContent = '';
     var w = document.createElement('button');
-    w.className = 'chap';
-    w.setAttribute('aria-current', cur ? 'false' : 'true');
-    w.innerHTML = '<span class="num"><i>★</i></span><span><span class="t">מסך הפתיחה</span><span class="m">על הקורס ואיך הוא עובד</span></span>';
+    w.className = 'chap home';
+    w.setAttribute('aria-current', cur ? 'false' : 'page');
+    w.innerHTML = '<span class="num"><svg class="homeic" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V20h14V9.5"/></svg></span><span><span class="t">מסך הפתיחה</span><span class="m">על הקורס ואיך הוא עובד</span></span>';
     w.addEventListener('click', function () { showWelcome(true); });
     box.appendChild(w);
+    var R = 2 * Math.PI * 16;
     C.chapters.forEach(function (ch) {
-      var s = chs(ch.n), p = pct(ch.n);
+      var s = chs(ch.n), p = progress(ch.n);
       var b = document.createElement('button');
       b.className = 'chap' + (s.done ? ' done' : '') + (ch.video ? '' : ' soon');
-      b.setAttribute('aria-current', cur && cur.n === ch.n ? 'true' : 'false');
-      b.dataset.n = ch.n;
-      var meta = ch.video
-        ? fmt(ch.duration) + (s.done ? ' · הושלם' : (p > 0 ? ' · נצפו ' + p + '%' : ''))
-        : '<span class="tag">קריאה בלבד</span>';
-      var C0 = 2 * Math.PI * 16;
-      var ring = ch.video
-        ? '<svg viewBox="0 0 36 36" aria-hidden="true"><circle class="rbg" cx="18" cy="18" r="16"></circle>' +
-          (p > 0 ? '<circle class="rfg" cx="18" cy="18" r="16" stroke-dasharray="' + (C0 * p / 100).toFixed(1) + ' ' + C0.toFixed(1) + '"></circle>' : '') +
-          '</svg>'
-        : '';
+      b.setAttribute('aria-current', cur && cur.n === ch.n ? 'page' : 'false');
+      var meta;
+      if (ch.video) meta = fmt(ch.duration) + (s.done ? ' · הושלם' : (p > 0 ? ' · נצפו ' + p + '%' : ''));
+      else meta = '<span class="tag">קריאה בלבד</span>' + (s.done ? ' הושלם' : (p > 0 ? ' נקראו ' + p + '%' : ''));
       b.innerHTML =
-        '<span class="num">' + ring + '<i>' + (s.done ? '✓' : ch.n) + '</i></span>' +
+        '<span class="num"><svg viewBox="0 0 36 36" aria-hidden="true"><circle class="rbg" cx="18" cy="18" r="16"></circle>' +
+          (p > 0 ? '<circle class="rfg" cx="18" cy="18" r="16" stroke-dasharray="' + (R * p / 100).toFixed(1) + ' ' + R.toFixed(1) + '"></circle>' : '') +
+        '</svg><i>' + (s.done ? '<svg class="tick" viewBox="0 0 24 24"><polyline points="5 12.5 10 17.5 19 7"/></svg>' : ch.n) + '</i></span>' +
         '<span><span class="t"></span><span class="m">' + meta + '</span></span>';
       b.querySelector('.t').textContent = ch.title;
+      b.setAttribute('aria-label', 'פרק ' + ch.n + ': ' + ch.title + (s.done ? ', הושלם' : (p > 0 ? ', ' + p + '%' : '')));
       b.addEventListener('click', function () { open(ch.n, true); });
       box.appendChild(b);
     });
-    var done = C.chapters.filter(function (c) { return chs(c.n).done; }).length;
-    var total = C.chapters.length;
-    var frac = Math.round(done / total * 100);
-    $('ring-fg').setAttribute('stroke-dasharray', (frac * 97.4 / 100) + ' 100');
-    $('overall-txt').textContent = done + ' מתוך ' + total + ' פרקים';
-    var tb = $('topbar-bar'); if (tb) tb.style.width = frac + '%';
+    renderMeter();
   }
 
   function closeRail() {
@@ -120,47 +167,73 @@
     requestAnimationFrame(function () { window.scrollTo({ top: 0, behavior: 'auto' }); });
   }
 
+  /* ---------------- routing ----------------
+     Chapter changes push a history entry, so Back returns to the previous chapter
+     instead of leaving the course, and editing the hash in an open tab navigates. */
+  function go(hash) {
+    if (location.hash !== hash) history.pushState(null, '', hash);
+  }
+  function route() {
+    var m = /#ch(\d+)/.exec(location.hash);
+    var n = m ? parseInt(m[1], 10) : 0;
+    if (n && byNum(n)) { if (!cur || cur.n !== n) open(n, false); }
+    else if (cur) showWelcome(false);
+  }
+  window.addEventListener('hashchange', route);
+
   /* ---------------- welcome screen ---------------- */
+  // Where a returning learner should continue: the chapter they last opened, or the next unfinished one.
+  function resumeTarget() {
+    var last = byNum(state.last);
+    if (last && !chs(last.n).done && progress(last.n) > 0) return last;
+    for (var i = 0; i < C.chapters.length; i++) {
+      var c = C.chapters[i];
+      if (!chs(c.n).done && progress(c.n) > 0) return c;
+    }
+    if (last) {
+      for (var j = last.n + 1; j <= C.chapters.length; j++) if (!chs(j).done) return byNum(j);
+    }
+    return null;
+  }
+
   function renderWelcome() {
     var withVideo = C.chapters.filter(function (c) { return c.video; });
     var secs = withVideo.reduce(function (a, c) { return a + (c.duration || 0); }, 0);
-    var done = C.chapters.filter(function (c) { return chs(c.n).done; }).length;
-    $('w-stats').innerHTML =
-      '<span><b>' + C.chapters.length + '</b> עקרונות</span>' +
-      '<span><b>' + withVideo.length + '</b> פרקי וידאו זמינים</span>' +
-      '<span>כ־<b>' + Math.round(secs / 60) + '</b> דקות צפייה</span>' +
-      '<span><b>' + done + '</b> פרקים שסיימתם</span>';
+    $('w-meta').textContent = C.chapters.length + ' עקרונות · ' + withVideo.length + ' פרקי וידאו · כ־' + Math.round(secs / 60) + ' דקות צפייה';
 
     var g = $('w-grid');
     g.textContent = '';
     C.chapters.forEach(function (ch) {
       var b = document.createElement('button');
+      var p = progress(ch.n);
       b.className = 'w-item' + (ch.video ? '' : ' soon');
       b.innerHTML =
-        '<span class="w-media">' +
-          (ch.thumb ? '<img class="w-thumb" src="' + ch.thumb + '" alt="" loading="lazy">' : '') +
-          '<span class="w-chip">' + (ICONS[ch.n] || '') + '<b>' + ch.n + '</b></span>' +
-        '</span>' +
-        '<span class="w-body"><b class="nm"></b><p></p>' +
-        '<span class="tag">' + (ch.video ? 'וידאו ' + fmt(ch.duration) + ' · תמלול · חומר קריאה' : 'הווידאו בהפקה · חומר קריאה זמין') + '</span></span>';
-      b.querySelector('.nm').textContent = ch.title;
+        (ch.thumb ? '<img class="w-thumb" src="' + ch.thumb + '" alt="" loading="lazy">' : '') +
+        (p > 0 ? '<span class="w-bar"><i style="width:' + p + '%"></i></span>' : '') +
+        '<span class="w-body">' +
+          '<span class="w-head"><span class="w-ic">' + (ICONS[ch.n] || '') + '</span><b class="nm"></b></span>' +
+          '<p></p>' +
+          '<span class="tag">' + (ch.video ? 'וידאו ' + fmt(ch.duration) : 'קריאה · הווידאו בהפקה') + (chs(ch.n).done ? ' · הושלם' : '') + '</span>' +
+        '</span>';
+      b.querySelector('.nm').textContent = ch.n + '. ' + ch.title;
       b.querySelector('p').textContent = ch.oneliner || ch.subtitle || '';
       b.addEventListener('click', function () { open(ch.n, true); });
       g.appendChild(b);
     });
 
-    // resume button: the furthest chapter with real progress
-    var res = null;
-    C.chapters.forEach(function (ch) {
-      var st = chs(ch.n);
-      if (ch.video && !st.done && st.pos > 5) res = ch;
-    });
-    var rb = $('w-resume');
+    var res = resumeTarget(), pri = $('w-primary'), sec = $('w-secondary');
     if (res) {
-      rb.hidden = false;
-      rb.textContent = 'המשך פרק ' + res.n + ' · ' + res.title + ' (' + fmt(chs(res.n).pos) + ')';
-      rb.onclick = function () { open(res.n, true); };
-    } else { rb.hidden = true; }
+      var at = res.video && chs(res.n).pos > 5 ? ' (' + fmt(chs(res.n).pos) + ')' : '';
+      pri.textContent = 'המשך: פרק ' + res.n + ' · ' + res.title + at;
+      pri.onclick = function () { open(res.n, true); };
+      sec.hidden = false;
+      sec.textContent = 'מההתחלה';
+      sec.onclick = function () { open(1, true); };
+    } else {
+      pri.textContent = 'התחלה מפרק 1';
+      pri.onclick = function () { open(1, true); };
+      sec.hidden = true;
+    }
   }
 
   var introReady = false;
@@ -204,7 +277,7 @@
     if (cur) persist();
     if (cur && cur.video) video.pause();
     cur = null;
-    if (push) history.replaceState(null, '', '#welcome');
+    if (push) go('#welcome');
     $('welcome').hidden = false;
     $('player').hidden = true;
     renderWelcome();
@@ -220,14 +293,16 @@
     if (!ch) return;
     if (cur) persist();
     cur = ch;
-    if (push) history.replaceState(null, '', '#ch' + n);
+    state.last = n; save();
+    if (push) go('#ch' + n);
     $('welcome').hidden = true;
     $('player').hidden = false;
     stopIntro();
+    hideEndcard();
 
-    $('ch-lbl').textContent = 'פרק ' + n + ' מתוך ' + C.chapters.length;
     $('ch-title').textContent = ch.title;
     $('ch-one').textContent = ch.oneliner || ch.subtitle || '';
+    $('ch-meta').textContent = 'פרק ' + n + ' מתוך ' + C.chapters.length + (ch.video ? ' · וידאו ' + fmt(ch.duration) : ' · חומר קריאה');
 
     var s = chs(n);
     stage.classList.toggle('empty', !ch.video);
@@ -250,16 +325,20 @@
         video.addEventListener('loadedmetadata', seek);
       }
     } else {
+      // Reading-only chapter: a slim banner, not a dead 16:9 block.
       video.removeAttribute('src'); video.load();
       var d = document.createElement('div');
       d.className = 'soonbox';
-      d.innerHTML = (ch.thumb ? '<img class="soon-bg" src="' + ch.thumb + '" alt="">' : '') +
-        '<div class="soon-in"><div class="big">הפרק בהפקה</div>' +
-        '<p>הווידאו של עיקרון ' + n + ' עדיין לא מוכן. חומר הקריאה המלא כבר כאן — בלשונית «חומר קריאה».</p></div>';
+      d.innerHTML = (ch.thumb ? '<img class="soon-thumb" src="' + ch.thumb + '" alt="">' : '') +
+        '<div><b>הווידאו של הפרק הזה בהפקה</b><p>בינתיים כל העיקרון כתוב כאן למטה, ואפשר לשמור עליו הערות.</p></div>';
       stage.insertBefore(d, $('ctrls'));
     }
 
+    // Tabs that would be empty for a reading-only chapter are not offered at all.
+    ['markers', 'bookmarks', 'transcript'].forEach(function (t) { $('tab-' + t).hidden = !ch.video; });
+
     cues = TX[n] || [];
+    lastCue = -1;
     renderTranscript();
     renderMarkers();
     renderBookmarks();
@@ -267,15 +346,17 @@
     renderScrubMarks();
     renderUpNext();
     $('notes').value = s.notes;
+    $('note-sub').textContent = 'פרק ' + n + ' · ' + ch.title;
     $('note-saved').textContent = '';
     updateDoneBtn();
     $('btn-prev').disabled = n <= 1;
     $('btn-next').disabled = n >= C.chapters.length;
     $('c-time').textContent = '0:00 / ' + fmt(ch.duration || 0);
-    setFill(0);
+    setFill(0, 0, ch.duration || 0);
     $('captions').textContent = '';
     selectTab(ch.video ? 'markers' : 'reading');
     renderRail();
+    closeRail();
     toTop();
   }
 
@@ -310,6 +391,7 @@
   function updateDoneBtn() {
     var s = chs(cur.n), b = $('btn-done');
     b.classList.toggle('done', !!s.done);
+    b.setAttribute('aria-pressed', String(!!s.done));
     b.querySelector('span').textContent = s.done ? 'הושלם' : 'סמן כהושלם';
   }
 
@@ -325,62 +407,107 @@
     save();
   }
 
-  /* ---------------- tabs ---------------- */
+  /* ---------------- tabs (ARIA tab pattern, roving tabindex) ---------------- */
   var TABS = ['markers', 'bookmarks', 'notes', 'transcript', 'reading'];
-  function selectTab(name) {
+  function visibleTabs() { return TABS.filter(function (t) { return !$('tab-' + t).hidden; }); }
+  function selectTab(name, focus) {
     TABS.forEach(function (t) {
-      $('tab-' + t).setAttribute('aria-selected', String(t === name));
-      $('p-' + t).hidden = t !== name;
+      var on = t === name;
+      $('tab-' + t).setAttribute('aria-selected', String(on));
+      $('tab-' + t).tabIndex = on ? 0 : -1;
+      $('p-' + t).hidden = !on;
     });
+    if (focus) $('tab-' + name).focus();
     if (name === 'transcript') scrollCueIntoView(true);
+    if (name === 'reading') trackReading();
   }
-  TABS.forEach(function (t) { $('tab-' + t).addEventListener('click', function () { selectTab(t); }); });
+  TABS.forEach(function (t) {
+    var el = $('tab-' + t);
+    el.addEventListener('click', function () { selectTab(t); });
+    el.addEventListener('keydown', function (e) {
+      var list = visibleTabs(), i = list.indexOf(t), to = null;
+      // RTL: the visually-next tab sits to the left
+      if (e.key === 'ArrowLeft') to = list[(i + 1) % list.length];
+      else if (e.key === 'ArrowRight') to = list[(i - 1 + list.length) % list.length];
+      else if (e.key === 'Home') to = list[0];
+      else if (e.key === 'End') to = list[list.length - 1];
+      if (to) { e.preventDefault(); selectTab(to, true); }
+    });
+  });
 
-  /* ---------------- markers (sub-chapters) ---------------- */
+  /* ---------------- markers, shown as the chapter's plan ---------------- */
   function renderMarkers() {
     var box = $('markers');
     box.textContent = '';
     var ms = (cur.markers || []);
-    if (!ms.length) {
-      box.innerHTML = '<p class="empty-note">אין פרקי משנה לפרק הזה.</p>';
-      return;
-    }
+    lastMk = -2;
+    if (!ms.length) { $('plan-status').textContent = ''; return; }
     ms.forEach(function (m, i) {
       var b = document.createElement('button');
       b.className = 'mk';
       b.dataset.i = i;
-      b.innerHTML = '<span class="time">' + fmt(m.t) + '</span><span class="x"></span>';
+      b.innerHTML = '<span class="box">' + BOX.todo + '</span><span class="x"></span><span class="time">' + fmt(m.t) + '</span>';
       b.querySelector('.x').textContent = m.title;
+      b.setAttribute('aria-label', m.title + ', ' + fmt(m.t));
       b.addEventListener('click', function () { seekTo(m.t); video.play().catch(function () {}); });
       box.appendChild(b);
     });
+    updateMarkerHighlight(0);
   }
   function currentMarkerIndex(t) {
     var ms = cur && cur.markers || [], idx = -1;
     for (var i = 0; i < ms.length; i++) if (ms[i].t <= t + 0.15) idx = i;
     return idx;
   }
+  var lastMk = -2;
   function updateMarkerHighlight(t) {
     var idx = currentMarkerIndex(t);
+    if (idx === lastMk) return;
+    lastMk = idx;
     var els = $('markers').querySelectorAll('.mk');
-    for (var i = 0; i < els.length; i++) els[i].setAttribute('aria-current', String(i === idx));
+    for (var i = 0; i < els.length; i++) {
+      var st = i < idx ? 'done' : (i === idx ? 'now' : 'todo');
+      if (els[i].dataset.st === st) continue;
+      els[i].dataset.st = st;
+      els[i].querySelector('.box').innerHTML = BOX[st];
+      if (st === 'now') els[i].setAttribute('aria-current', 'step'); else els[i].removeAttribute('aria-current');
+    }
+    var total = els.length;
+    $('plan-status').textContent = total ? (Math.max(idx, 0) + ' מתוך ' + total + ' שלבים עברו') : '';
   }
 
-  /* ---------------- bookmarks ---------------- */
+  /* ---------------- bookmarks ----------------
+     A bookmark never interrupts watching: it drops a pin, keeps the current tab and
+     focus, and offers the note as an optional follow-up from the toast. */
   function addBookmark() {
     if (!cur || !cur.video) return;
     var s = chs(cur.n);
     var t = video.currentTime || 0;
-    var near = cueAt(t);
+    var near = cueAt(t) || cues[cueIndexAt(t)];
     var id = 'b' + Date.now();
     s.bm.push({ id: id, t: t, note: '', quote: near ? near.t : '' });
     s.bm.sort(function (a, b) { return a.t - b.t; });
     save();
     renderBookmarks(); renderScrubMarks();
-    toast('נוספה סימנייה ב־' + fmt(t));
-    selectTab('bookmarks');
-    var inp = document.querySelector('.bm[data-id="' + id + '"] input');
-    if (inp) inp.focus();
+    toast('נוספה סימנייה ב־' + fmt(t), 'הוספת הערה', function () {
+      selectTab('bookmarks');
+      var inp = document.querySelector('.bm[data-id="' + id + '"] input');
+      if (inp) inp.focus({ preventScroll: true });
+    });
+  }
+  function removeBookmark(id) {
+    var s = chs(cur.n), gone = null, at = -1;
+    s.bm.forEach(function (x, i) { if (x.id === id) { gone = x; at = i; } });
+    if (!gone) return;
+    s.bm.splice(at, 1);
+    save(); renderBookmarks(); renderScrubMarks();
+    var n = cur.n;
+    toast('הסימנייה מ־' + fmt(gone.t) + ' נמחקה', 'ביטול', function () {
+      var st = chs(n);
+      st.bm.push(gone); st.bm.sort(function (a, b) { return a.t - b.t; });
+      save();
+      if (cur && cur.n === n) { renderBookmarks(); renderScrubMarks(); }
+    });
   }
   function renderBookmarks() {
     var s = chs(cur.n), box = $('bookmarks');
@@ -389,25 +516,26 @@
     $('cnt-bm').hidden = s.bm.length === 0;
     $('bm-add').disabled = !cur.video;
     if (!s.bm.length) {
-      box.innerHTML = '<p class="empty-note">עוד אין סימניות בפרק הזה. לחצו <kbd>B</kbd> בזמן הצפייה כדי לסמן רגע, ותוכלו לחזור אליו בלחיצה אחת.</p>';
+      box.innerHTML = '<p class="empty-note">עוד אין סימניות בפרק הזה. כפתור הסימנייה בנגן שומר את הרגע ואת המשפט שנאמר בו, ותוכלו לחזור אליו בלחיצה אחת.</p>';
       return;
     }
     s.bm.forEach(function (b) {
       var row = document.createElement('div');
       row.className = 'bm'; row.dataset.id = b.id;
       row.innerHTML =
-        '<button class="jump">' + fmt(b.t) + '</button>' +
-        '<input type="text" placeholder="למה סימנתם את זה?">' +
-        '<button class="del" aria-label="מחיקה"><svg viewBox="0 0 24 24"><path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14"/></svg></button>';
-      var inp = row.querySelector('input');
+        '<button class="jump"></button>' +
+        '<div class="bm-body"><q></q><input type="text" placeholder="הוסיפו הערה, לא חובה"></div>' +
+        '<button class="del"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14"/></svg></button>';
+      var jump = row.querySelector('.jump'), q = row.querySelector('q'), inp = row.querySelector('input'), del = row.querySelector('.del');
+      jump.textContent = fmt(b.t);
+      jump.setAttribute('aria-label', 'קפיצה ל־' + fmt(b.t));
+      if (b.quote) q.textContent = b.quote; else q.remove();
       inp.value = b.note || '';
-      if (!b.note && b.quote) inp.placeholder = '״' + b.quote.slice(0, 60) + '״';
+      inp.setAttribute('aria-label', 'הערה לסימנייה ב־' + fmt(b.t));
+      del.setAttribute('aria-label', 'מחיקת הסימנייה ב־' + fmt(b.t));
       inp.addEventListener('input', function () { b.note = inp.value; clearTimeout(saveTimer); saveTimer = setTimeout(save, 400); });
-      row.querySelector('.jump').addEventListener('click', function () { seekTo(b.t); video.play().catch(function () {}); });
-      row.querySelector('.del').addEventListener('click', function () {
-        s.bm = s.bm.filter(function (x) { return x.id !== b.id; });
-        save(); renderBookmarks(); renderScrubMarks();
-      });
+      jump.addEventListener('click', function () { seekTo(b.t); video.play().catch(function () {}); });
+      del.addEventListener('click', function () { removeBookmark(b.id); });
       box.appendChild(row);
     });
   }
@@ -422,7 +550,7 @@
   $('note-stamp').addEventListener('click', function () {
     if (!cur) return;
     var ta = $('notes'), t = cur.video ? fmt(video.currentTime || 0) : '';
-    var stamp = '[' + t + '] ';
+    var stamp = t ? '[' + t + '] ' : '';
     var p = ta.selectionStart;
     ta.value = ta.value.slice(0, p) + stamp + ta.value.slice(p);
     ta.focus(); ta.selectionStart = ta.selectionEnd = p + stamp.length;
@@ -433,6 +561,7 @@
   function renderTranscript() {
     var box = $('transcript');
     box.textContent = ''; cueEls = [];
+    $('tx-search').value = '';
     if (!cues.length) {
       box.innerHTML = '<p class="empty-note">התמלול של הפרק הזה יתווסף עם הווידאו.</p>';
       $('tx-search').disabled = true; $('tx-copy').disabled = true;
@@ -459,15 +588,17 @@
   var lastCue = -1;
   function updateTranscript(t) {
     var i = cueIndexAt(t);
+    if (state.prefs.cc) {
+      var c = cues[i];
+      var cap = $('captions');
+      if (c && t <= c.e + 0.8) {
+        if (!cap.firstChild || cap.firstChild.textContent !== c.t) { cap.innerHTML = '<span></span>'; cap.firstChild.textContent = c.t; }
+      } else cap.textContent = '';
+    }
     if (i === lastCue) return;
     if (cueEls[lastCue]) cueEls[lastCue].classList.remove('active');
     lastCue = i;
     if (cueEls[i]) { cueEls[i].classList.add('active'); scrollCueIntoView(false); }
-    if (state.prefs.cc) {
-      var c = cues[i];
-      $('captions').innerHTML = (c && t <= c.e + 0.8) ? '<span></span>' : '';
-      if (c && $('captions').firstChild) $('captions').firstChild.textContent = c.t;
-    }
   }
   function scrollCueIntoView(force) {
     if (!state.prefs.follow && !force) return;
@@ -476,10 +607,13 @@
     var top = el.offsetTop - box.clientHeight / 2 + el.clientHeight / 2;
     box.scrollTo({ top: top, behavior: force ? 'auto' : 'smooth' });
   }
+  function syncFollow() {
+    $('tx-follow').setAttribute('aria-pressed', String(state.prefs.follow));
+    $('tx-follow').textContent = state.prefs.follow ? 'עוקב אחרי הסרטון' : 'לא עוקב';
+  }
   $('tx-follow').addEventListener('click', function () {
     state.prefs.follow = !state.prefs.follow; save();
-    this.setAttribute('aria-pressed', String(state.prefs.follow));
-    this.textContent = state.prefs.follow ? 'עוקב אחרי הסרטון' : 'לא עוקב';
+    syncFollow();
     if (state.prefs.follow) scrollCueIntoView(true);
   });
   $('tx-search').addEventListener('input', function () {
@@ -501,7 +635,10 @@
   });
   $('tx-copy').addEventListener('click', function () {
     var txt = cues.map(function (c) { return '[' + fmt(c.s) + '] ' + c.t; }).join('\n');
-    navigator.clipboard.writeText(txt).then(function () { $('tx-copy').textContent = 'הועתק ✓'; setTimeout(function () { $('tx-copy').textContent = 'העתק תמלול'; }, 1500); });
+    navigator.clipboard.writeText(txt).then(function () {
+      $('tx-copy').textContent = 'הועתק';
+      setTimeout(function () { $('tx-copy').textContent = 'העתק תמלול'; }, 1500);
+    }, function () { toast('ההעתקה נחסמה בדפדפן. אפשר לסמן את הטקסט ולהעתיק ידנית'); });
   });
 
   /* ---------------- reading ---------------- */
@@ -516,23 +653,53 @@
         tables[i].parentNode.insertBefore(w, tables[i]); w.appendChild(tables[i]);
       }
     }
+    // box headings follow the principle's h2 directly, so they are h3 in this outline, not h4
+    var hs = box.querySelectorAll('.box > h4');
+    for (var h = 0; h < hs.length; h++) {
+      var n3 = document.createElement('h3');
+      n3.className = 'box-h';
+      n3.innerHTML = hs[h].innerHTML;
+      hs[h].parentNode.replaceChild(n3, hs[h]);
+    }
     // the written guide ships one inline white-space:pre command block; the course wraps instead of scrolling
     var pres = box.querySelectorAll('code[style*="white-space:pre"]');
     for (var k = 0; k < pres.length; k++) { pres[k].style.whiteSpace = 'pre-wrap'; pres[k].style.overflowWrap = 'anywhere'; }
     var links = box.querySelectorAll('a[href^="http"]');
     for (var j = 0; j < links.length; j++) { links[j].target = '_blank'; links[j].rel = 'noopener'; }
   }
+  // Reading progress: how far down the written guide the learner has actually scrolled.
+  var readTick = false;
+  function trackReading() {
+    if (!cur || $('p-reading').hidden) return;
+    var el = $('reading'), r = el.getBoundingClientRect();
+    if (!r.height) return;
+    var seen = Math.max(0, Math.min(1, (window.innerHeight - r.top) / r.height)) * 100;
+    var s = chs(cur.n);
+    if (seen > s.read + 0.5) {
+      s.read = seen;
+      if (!cur.video && seen >= 97 && !s.done) { s.done = true; updateDoneBtn(); toast('קראתם את כל העיקרון'); }
+      clearTimeout(saveTimer); saveTimer = setTimeout(function () { save(); renderRail(); }, 600);
+    }
+  }
+  window.addEventListener('scroll', function () {
+    if (readTick) return;
+    readTick = true;
+    requestAnimationFrame(function () { readTick = false; trackReading(); });
+  }, { passive: true });
 
   /* ---------------- player ---------------- */
   function seekTo(t) {
     if (!cur || !cur.video) return;
     var d = video.duration || cur.duration || 0;
     video.currentTime = Math.max(0, Math.min(d ? d - 0.1 : t, t));
+    idle();
   }
-  function setFill(p) {
+  function setFill(p, t, d) {
     $('fill').style.width = p + '%';
     $('head').style.left = p + '%';
-    $('scrub').setAttribute('aria-valuenow', Math.round(p));
+    var sc = $('scrub');
+    sc.setAttribute('aria-valuenow', Math.round(p));
+    sc.setAttribute('aria-valuetext', fmt(t) + ' מתוך ' + fmt(d));
   }
   function renderScrubMarks() {
     if (!cur) return;
@@ -550,7 +717,8 @@
     chs(cur.n).bm.forEach(function (b) {
       var el = document.createElement('div');
       el.className = 'pin'; el.style.left = (b.t / d * 100) + '%';
-      el.title = 'סימנייה: ' + fmt(b.t) + (b.note ? ' — ' + b.note : '');
+      el.title = 'סימנייה: ' + fmt(b.t) + (b.note ? ' · ' + b.note : '');
+      el.addEventListener('pointerdown', function (e) { e.stopPropagation(); });
       el.addEventListener('click', function (e) { e.stopPropagation(); seekTo(b.t); });
       track.appendChild(el);
     });
@@ -560,7 +728,7 @@
     if (!cur || !cur.video) return;
     var d = video.duration || cur.duration || 0;
     if (!d) return;
-    setFill(video.currentTime / d * 100);
+    setFill(video.currentTime / d * 100, video.currentTime, d);
     $('c-time').textContent = fmt(video.currentTime) + ' / ' + fmt(d);
     updateTranscript(video.currentTime);
     updateMarkerHighlight(video.currentTime);
@@ -574,24 +742,57 @@
   video.addEventListener('loadedmetadata', function () {
     if (cur && cur.video) { cur.duration = video.duration || cur.duration; renderScrubMarks(); $('c-time').textContent = fmt(video.currentTime) + ' / ' + fmt(video.duration); }
   });
-  video.addEventListener('play', function () { $('bigplay').hidden = true; setPlayIcon(true); idle(); });
+  video.addEventListener('play', function () { $('bigplay').hidden = true; hideEndcard(); setPlayIcon(true); idle(); });
   video.addEventListener('pause', function () { setPlayIcon(false); persist(); renderRail(); stage.classList.remove('hidectl'); });
   video.addEventListener('ended', function () {
     if (!cur) return;
     var s = chs(cur.n); s.done = true; s.pos = 0; save();
-    updateDoneBtn(); renderRail(); $('bigplay').hidden = false;
+    updateDoneBtn(); renderRail();
     stage.classList.remove('hidectl');
-    var next = byNum(cur.n + 1);
-    if (next && next.video) toast('הפרק הבא: ' + next.title);
+    showEndcard();
   });
-  setInterval(function () { if (cur && cur.video && !video.paused) { persist(); } }, 5000);
+  var lastPct = -1;
+  setInterval(function () {
+    if (!cur || !cur.video || video.paused) return;
+    persist();
+    var p = progress(cur.n);
+    if (p !== lastPct) { lastPct = p; renderRail(); }   // keep the rail ring and /context meter live while watching
+  }, 5000);
   window.addEventListener('beforeunload', persist);
   document.addEventListener('visibilitychange', function () { if (document.hidden) persist(); });
+
+  /* end card: finishing a chapter is a moment, not a replay button */
+  function showEndcard() {
+    var next = byNum(cur.n + 1), el = $('endcard');
+    el.innerHTML =
+      '<div class="ec">' +
+        '<span class="ec-ic"><svg viewBox="0 0 24 24" aria-hidden="true"><polyline points="5 12.5 10 17.5 19 7"/></svg></span>' +
+        '<h2 class="ec-t"></h2>' +
+        (next ? '<p class="ec-next"><span>הצעד הבא</span> <b></b></p>' : '<p class="ec-next"><b>סיימתם את כל הפרקים שיש כרגע בקורס</b></p>') +
+        '<div class="ec-acts">' +
+          (next ? '<button class="btn pri" id="ec-go"></button>' : '') +
+          '<button class="btn" id="ec-replay">לצפות שוב</button>' +
+        '</div>' +
+      '</div>';
+    el.querySelector('.ec-t').textContent = 'עיקרון ' + cur.n + ' הושלם';
+    if (next) {
+      el.querySelector('.ec-next b').textContent = next.n + '. ' + next.title;
+      $('ec-go').textContent = 'המשך לעיקרון ' + next.n + ' ←';
+      $('ec-go').addEventListener('click', function () { open(next.n, true); });
+    }
+    $('ec-replay').addEventListener('click', function () { hideEndcard(); video.currentTime = 0; video.play().catch(function () {}); });
+    el.hidden = false;
+    requestAnimationFrame(function () { el.classList.add('in'); });
+    var first = el.querySelector('button');
+    if (first && stage.contains(document.activeElement)) first.focus({ preventScroll: true });
+  }
+  function hideEndcard() { var el = $('endcard'); el.classList.remove('in'); el.hidden = true; el.textContent = ''; }
 
   function setPlayIcon(playing) {
     $('c-play').innerHTML = playing
       ? '<svg class="solid" viewBox="0 0 24 24"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>'
       : '<svg class="solid" viewBox="0 0 24 24"><polygon points="6 3 21 12 6 21 6 3"/></svg>';
+    $('c-play').setAttribute('aria-label', playing ? 'השהיה' : 'ניגון');
   }
   function toggle() {
     if (!cur || !cur.video) return;
@@ -599,8 +800,26 @@
   }
   $('c-play').addEventListener('click', toggle);
   $('bigplay').addEventListener('click', toggle);
-  video.addEventListener('click', toggle);
-  video.addEventListener('dblclick', function () { if (fsEl()) exitFs(); else enterFs(); });
+
+  /* taps on the picture: a single tap plays or pauses; on touch screens a double tap
+     skips 10 seconds on that side, and on desktop a double click goes fullscreen */
+  var tapTimer = null, lastTap = 0;
+  video.addEventListener('click', function (e) {
+    if (!TOUCH) { toggle(); return; }
+    var now = Date.now();
+    if (now - lastTap < 280) {
+      clearTimeout(tapTimer); lastTap = 0;
+      var r = video.getBoundingClientRect();
+      var fwd = (e.clientX - r.left) > r.width / 2;   // the timeline runs left to right
+      seekTo(video.currentTime + (fwd ? 10 : -10));
+      toast(fwd ? '10 שניות קדימה' : '10 שניות אחורה');
+      return;
+    }
+    lastTap = now;
+    tapTimer = setTimeout(toggle, 280);
+  });
+  video.addEventListener('dblclick', function () { if (!TOUCH) { if (fsEl()) exitFs(); else enterFs(); } });
+
   $('c-back').addEventListener('click', function () { seekTo(video.currentTime - 10); });
   $('c-fwd').addEventListener('click', function () { seekTo(video.currentTime + 10); });
   $('c-mark').addEventListener('click', addBookmark);
@@ -626,7 +845,9 @@
   $('c-cc').addEventListener('click', function () {
     state.prefs.cc = !state.prefs.cc; save();
     this.classList.toggle('on', state.prefs.cc);
-    if (!state.prefs.cc) $('captions').textContent = ''; else { lastCue = -1; updateTranscript(video.currentTime); }
+    this.setAttribute('aria-pressed', String(state.prefs.cc));
+    $('captions').textContent = '';
+    if (state.prefs.cc) updateTranscript(video.currentTime);
     toast(state.prefs.cc ? 'כתוביות פועלות' : 'כתוביות כבויות');
   });
   $('c-pip').addEventListener('click', function () {
@@ -663,49 +884,55 @@
   document.addEventListener('fullscreenchange', syncFsIcon);
   document.addEventListener('webkitfullscreenchange', syncFsIcon);
 
-  /* scrub */
+  /* scrub: pointer events, so it drags with a finger as well as a mouse */
   function scrubAt(e) {
     var r = $('track').getBoundingClientRect();
-    var x = ((e.touches ? e.touches[0].clientX : e.clientX) - r.left) / r.width;
-    return Math.max(0, Math.min(1, x));
+    return Math.max(0, Math.min(1, (e.clientX - r.left) / r.width));
   }
-  $('scrub').addEventListener('mousedown', function (e) {
+  var scrub = $('scrub');
+  scrub.addEventListener('pointerdown', function (e) {
     if (!cur || !cur.video) return;
-    dragging = true; var d = video.duration || cur.duration; seekTo(scrubAt(e) * d);
+    dragging = true;
+    scrub.setPointerCapture(e.pointerId);
+    seekTo(scrubAt(e) * (video.duration || cur.duration));
     e.preventDefault();
   });
-  document.addEventListener('mousemove', function (e) {
-    if (dragging && cur && cur.video) seekTo(scrubAt(e) * (video.duration || cur.duration));
-  });
-  document.addEventListener('mouseup', function () { dragging = false; });
-  $('scrub').addEventListener('mousemove', function (e) {
+  scrub.addEventListener('pointermove', function (e) {
     if (!cur || !cur.video) return;
     var d = video.duration || cur.duration || 0;
-    var f = scrubAt(e), t = f * d, tip = $('tip');
-    var i = currentMarkerIndex(t), m = (cur.markers || [])[i];
+    var f = scrubAt(e);
+    if (dragging) seekTo(f * d);
+    if (e.pointerType !== 'mouse' && !dragging) return;
+    var t = f * d, tip = $('tip');
+    var m = (cur.markers || [])[currentMarkerIndex(t)];
     tip.innerHTML = '<span class="tt"></span>' + fmt(t);
     if (m) tip.querySelector('.tt').textContent = m.title; else tip.querySelector('.tt').remove();
     tip.hidden = false;
+    stage.classList.add('scrubbing');
     var r = $('track').getBoundingClientRect();
     tip.style.left = Math.max(60, Math.min(r.width - 60, f * r.width)) + 'px';
   });
-  $('scrub').addEventListener('mouseleave', function () { $('tip').hidden = true; });
-  $('scrub').addEventListener('keydown', function (e) {
+  function endScrub() { dragging = false; $('tip').hidden = true; stage.classList.remove('scrubbing'); }
+  scrub.addEventListener('pointerup', endScrub);
+  scrub.addEventListener('pointercancel', endScrub);
+  scrub.addEventListener('pointerleave', function () { if (!dragging) endScrub(); });
+  scrub.addEventListener('keydown', function (e) {
     var d = video.duration || cur.duration || 0;
     if (e.key === 'ArrowRight') { seekTo(video.currentTime + 5); e.preventDefault(); }
-    if (e.key === 'ArrowLeft') { seekTo(video.currentTime - 5); e.preventDefault(); }
-    if (e.key === 'Home') { seekTo(0); e.preventDefault(); }
-    if (e.key === 'End') { seekTo(d - 1); e.preventDefault(); }
+    else if (e.key === 'ArrowLeft') { seekTo(video.currentTime - 5); e.preventDefault(); }
+    else if (e.key === 'Home') { seekTo(0); e.preventDefault(); }
+    else if (e.key === 'End') { seekTo(d - 1); e.preventDefault(); }
   });
 
-  /* auto-hide controls */
+  /* auto-hide controls; keyboard focus inside the player keeps them visible (CSS :focus-within) */
   function idle() {
     stage.classList.remove('hidectl');
     clearTimeout(hideTimer);
-    hideTimer = setTimeout(function () { if (!video.paused) stage.classList.add('hidectl'); }, 2600);
+    hideTimer = setTimeout(function () { if (!video.paused && !stage.contains(document.activeElement)) stage.classList.add('hidectl'); }, 2600);
   }
-  stage.addEventListener('mousemove', idle);
-  stage.addEventListener('mouseleave', function () { if (!video.paused) stage.classList.add('hidectl'); });
+  stage.addEventListener('pointermove', idle);
+  stage.addEventListener('focusin', idle);
+  stage.addEventListener('mouseleave', function () { if (!video.paused && !stage.contains(document.activeElement)) stage.classList.add('hidectl'); });
 
   /* ---------------- chapter nav ---------------- */
   $('btn-prev').addEventListener('click', function () { if (!cur) return; if (cur.n <= 1) showWelcome(true); else open(cur.n - 1, true); });
@@ -715,14 +942,19 @@
     var s = chs(cur.n); s.done = !s.done; save(); updateDoneBtn(); renderRail();
   });
 
-  /* ---------------- keyboard ---------------- */
+  /* ---------------- keyboard ----------------
+     Global shortcuts never take a key a focused control owns: Space and Enter
+     activate buttons, arrows move between tabs, the scrubber handles its own arrows. */
   document.addEventListener('keydown', function (e) {
-    var tag = (e.target.tagName || '').toLowerCase();
-    if (tag === 'input' || tag === 'textarea' || tag === 'select' || e.target.isContentEditable) return;
+    var el = e.target, tag = (el.tagName || '').toLowerCase();
+    if (tag === 'input' || tag === 'textarea' || tag === 'select' || el.isContentEditable) return;
     if (e.metaKey || e.ctrlKey || e.altKey) return;
     var k = e.key;
+    var onControl = el.closest && el.closest('button, a, summary, [role="tab"], [role="slider"], dialog');
+    if (onControl && (k === ' ' || k === 'Enter')) return;
+    if (el.closest && el.closest('[role="tab"], [role="slider"]') && /^(Arrow|Home|End)/.test(k)) return;
     if (k === '?') { $('dlg-help').showModal(); e.preventDefault(); return; }
-    if (!cur || !cur.video) return;
+    if (!cur || !cur.video || document.querySelector('dialog[open]')) return;
     var d = video.duration || cur.duration || 0;
     switch (k) {
       case ' ': case 'k': case 'K': toggle(); e.preventDefault(); break;
@@ -759,25 +991,25 @@
     toast('מהירות ' + opts[i] + '×');
   }
 
-  /* ---------------- dialogs / data ---------------- */
+  /* ---------------- dialogs ---------------- */
   $('rail-toggle').addEventListener('click', function () {
-    var open = $('chaplist').classList.toggle('open');
-    this.setAttribute('aria-expanded', String(open));
+    var isOpen = $('chaplist').classList.toggle('open');
+    this.setAttribute('aria-expanded', String(isOpen));
   });
   $('btn-home').addEventListener('click', function () { showWelcome(true); });
-  $('w-start').addEventListener('click', function () { open(1, true); });
   $('btn-help').addEventListener('click', function () { $('dlg-help').showModal(); });
   $('help-close').addEventListener('click', function () { $('dlg-help').close(); });
+
   /* ---------------- boot ---------------- */
   $('c-rate').value = String(state.prefs.rate);
   $('c-vol').value = String(state.prefs.volume);
   $('c-cc').classList.toggle('on', !!state.prefs.cc);
-  $('tx-follow').setAttribute('aria-pressed', String(state.prefs.follow));
-  $('tx-follow').textContent = state.prefs.follow ? 'עוקב אחרי הסרטון' : 'לא עוקב';
+  $('c-cc').setAttribute('aria-pressed', String(!!state.prefs.cc));
+  syncFollow();
   setPlayIcon(false);
   setMuteIcon();
 
-  var m = /#ch(\d+)/.exec(location.hash);
-  if (m && byNum(parseInt(m[1], 10))) open(parseInt(m[1], 10), false);
+  var m0 = /#ch(\d+)/.exec(location.hash);
+  if (m0 && byNum(parseInt(m0[1], 10))) open(parseInt(m0[1], 10), false);
   else showWelcome(false);
 })();

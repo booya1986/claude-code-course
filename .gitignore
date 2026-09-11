@@ -2,3 +2,4 @@
 media
 .playwright-mcp/
 .DS_Store
+.impeccable/live/
