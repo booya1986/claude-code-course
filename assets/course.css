@@ -558,8 +558,10 @@ dialog.modal h2 { margin: 0 0 10px; color: var(--text-1); font-size: 1.15rem; }
 .w-cta .btn { padding: 11px 22px; font-size: .96rem; min-height: 46px; }
 .w-h2 { font-size: clamp(1.35rem, 2.6vw, 1.75rem); color: var(--text-1); margin: 44px 0 16px; font-weight: 700; letter-spacing: -.01em; }
 
-/* ten chapters: five across on a desktop, two across on a phone */
+/* ten chapters: five across on a desktop, two across on a phone. Below 1320px the
+   rail leaves the grid too little room for five, so it drops to three. */
 .w-grid { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 14px; }
+@media (max-width: 1320px) { .w-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
 .w-item { display: flex; flex-direction: column; text-align: start; background: var(--card-bg); border: 1px solid var(--border);
   border-radius: var(--radius); padding: 0; overflow: hidden; color: inherit; font: inherit; cursor: pointer;
   transition: border-color .18s, transform .3s var(--ease-out); position: relative; }
