@@ -3,3 +3,5 @@ media
 .playwright-mcp/
 .DS_Store
 .impeccable/live/
+# screenshots written by scripts/verify-deploy.cjs
+.deploy-checks/
