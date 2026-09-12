@@ -116,12 +116,13 @@ async function main() {
     });
     if (!welcome.shown) fail(vp.name + ' welcome', 'the welcome screen did not render');
     if (!welcome.intro) fail(vp.name + ' welcome', 'the intro video element is missing');
-    if (welcome.cards < 9) fail(vp.name + ' welcome', 'only ' + welcome.cards + ' chapter cards, expected 9');
     if (welcome.overflow > 1) fail(vp.name + ' welcome', 'scrolls sideways by ' + welcome.overflow + 'px');
     await page.screenshot({ path: path.join(SHOTS, vp.name + '-welcome.png'), fullPage: false });
 
     /* Every chapter, on the player and on the reading material. */
-    for (var n = 1; n <= 9; n++) {
+    var count = await page.evaluate(function () { return window.COURSE.chapters.length; });
+    if (count !== welcome.cards) fail(vp.name + ' welcome', count + ' chapters but ' + welcome.cards + ' cards');
+    for (var n = 1; n <= count; n++) {
       await page.goto(url + '#ch' + n, { waitUntil: 'load' });
       await page.waitForTimeout(700);
 
@@ -190,7 +191,7 @@ async function main() {
     console.error('screenshots: ' + SHOTS);
     process.exit(2);
   }
-  console.log('\nDeploy check passed on ' + url + ' (mobile 390px and desktop 1440px, all 9 chapters).');
+  console.log('\nDeploy check passed on ' + url + ' (mobile 390px and desktop 1440px, every chapter).');
 }
 
 main().catch(function (e) {
