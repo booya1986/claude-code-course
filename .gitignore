@@ -5,3 +5,6 @@ media
 .impeccable/live/
 # screenshots written by scripts/verify-deploy.cjs
 .deploy-checks/
+
+# project guidance for Claude Code, kept out of the public repo
+CLAUDE.md
